@@ -1,0 +1,157 @@
+    {% extends 'base.html.twig' %}
+
+    {% block title %}{{ position.title }}{% endblock %}
+
+    {% block body %}
+        <div class="d-flex justify-content-between align-items-start mb-3">
+            <div>
+                <h1 class="h3 mb-1">{{ position.title }}</h1>
+                <div class="text-muted small">
+                    {% if position.companyName %}{{ position.companyName }} · {% endif %}
+                    {% if position.level %}{{ position.level }} · {% endif %}
+                    {{ 'position.max_projects'|trans({'%count%': position.maxProjects}) }} ·
+                    {{ position.isPublic ? 'position.public'|trans : 'position.private'|trans }}
+                </div>
+                <div class="mt-2">
+                    {% for tag in position.tags %}<a class="badge text-bg-secondary text-decoration-none" href="{{ path('search_index') }}?q={{ tag.name|url_encode }}">{{ tag.name }}</a> {% endfor %}
+                </div>
+            </div>
+            {% if is_granted('ROLE_RECRUITER') %}
+                <div class="btn-group btn-group-sm">
+                    <a class="btn btn-outline-secondary" href="{{ path('position_edit', {id: position.id}) }}"><i class="bi bi-pencil"></i> {{ 'toolbar.edit'|trans }}</a>
+                    <a class="btn btn-outline-secondary" href="{{ path('position_cvs', {id: position.id}) }}"><i class="bi bi-collection"></i> {{ 'profile.cvs'|trans }}</a>
+                    <form method="post" action="{{ path('position_duplicate', {id: position.id}) }}" class="m-0">
+                        <button class="btn btn-outline-secondary" type="submit"><i class="bi bi-files"></i></button>
+                    </form>
+                    <form method="post" action="{{ path('position_delete', {id: position.id}) }}" class="m-0"
+                        onsubmit="return confirm('{{ 'toolbar.delete'|trans }}?')">
+                        <button class="btn btn-outline-danger" type="submit"><i class="bi bi-trash"></i></button>
+                    </form>
+                </div>
+            {% endif %}
+        </div>
+
+        <p>{{ position.shortDescription }}</p>
+
+        {% if app.user and 'ROLE_CANDIDATE' in app.user.roles %}
+            {% if hasAppliedCv %}
+                <button class="btn btn-success btn-sm mb-3" disabled>
+                    <i class="bi bi-check-circle"></i> {{ 'cv.applied'|trans }}
+                </button>
+            {% else %}
+                <a class="btn btn-success btn-sm mb-3" href="{{ path('cv_apply', {positionId: position.id}) }}">
+                    <i class="bi bi-send"></i> {{ 'toolbar.apply'|trans }}
+                </a>
+            {% endif %}
+        {% endif %}
+
+        <ul class="nav nav-tabs mb-3" role="tablist">
+            <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-attributes">{{ 'position.attributes_tab'|trans }}</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-discussion">{{ 'discussion.title'|trans }}</button></li>
+        </ul>
+
+        <div class="tab-content">
+            <div class="tab-pane fade show active" id="tab-attributes">
+                <table class="table table-hover align-middle bg-body">
+                    <thead class="table-light">
+                    <tr>
+                        <th>{{ 'table.attribute'|trans }}</th>
+                        <th>{{ 'table.required'|trans }}</th>
+                        <th>{{ 'table.type'|trans }}</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for template in position.templateAttributes %}
+                        <tr>
+                            <td>{{ template.attribute.name }}</td>
+                            <td>{% if template.isRequired %}<span class="badge text-bg-warning">{{ 'cv.required_badge'|trans }}</span>{% else %}—{% endif %}</td>
+                            <td><span class="badge text-bg-light border">{{ template.attribute.dataType.translationKey()|trans }}</span></td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="tab-pane fade" id="tab-discussion">
+                <div id="discussion-list">
+                    {% for discussion in discussions|reverse %}
+                        <div class="card mb-2">
+                            <div class="card-body py-2">
+                                <div class="small text-muted">
+                                    <i class="bi bi-person-circle"></i>
+                                    {%- if is_granted('ROLE_ADMIN') and discussion.author.profile is not null -%}
+                                        <a href="{{ path('profile_show', {id: discussion.author.profile.id}) }}">{{ discussion.author.email }}</a>
+                                    {%- elseif is_granted('ROLE_RECRUITER') and publishedCvIdByAuthorId[discussion.author.id] is defined -%}
+                                        {# Recruiters see candidates as their published CV (read-only page). #}
+                                        <a href="{{ path('cv_show', {id: publishedCvIdByAuthorId[discussion.author.id]}) }}">{{ discussion.author.email }}</a>
+                                    {%- else -%}
+                                        {{ discussion.author.email }}
+                                    {%- endif -%}
+                                    · {{ discussion.createdAt|date('Y-m-d H:i') }}
+                                </div>
+                                <div class="markdown-body small mt-1">{{ discussion.messageMd|markdown_safe }}</div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <p class="text-muted" id="discussion-empty">{{ 'discussion.empty'|trans }}</p>
+                    {% endfor %}
+                </div>
+
+                {% if app.user %}
+                    <form method="post" action="{{ path('discussion_post', {id: position.id}) }}" class="mt-3">
+                        <div class="input-group">
+                            <textarea class="form-control" name="message" rows="2" maxlength="5000"
+                                    placeholder="{{ 'discussion.message_placeholder'|trans }}" required></textarea>
+                            <button class="btn btn-primary" type="submit">{{ 'discussion.post'|trans }}</button>
+                        </div>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+    {% endblock %}
+
+    {% block javascripts %}
+        <script>
+            (function () {
+                'use strict';
+
+                // Restore the active tab after a redirect with #tab-discussion
+                // (e.g. after posting a message) — otherwise the user lands on
+                // the default "Attributes" tab.
+                if (window.location.hash === '#tab-discussion') {
+                    const discussionTab = document.querySelector('[data-bs-target="#tab-discussion"]');
+                    if (discussionTab && window.bootstrap) {
+                        bootstrap.Tab.getOrCreateInstance(discussionTab).show();
+                    }
+                }
+
+                const topic = "https://cv-platform/positions/{{ position.id }}/discussions";
+                const hubUrl = "{{ mercure('https://cv-platform/positions/' ~ position.id ~ '/discussions') }}";
+                if (!hubUrl) { return; }
+
+                const es = new EventSource(hubUrl);
+                es.onmessage = function (event) {
+                    try {
+                        const data = JSON.parse(event.data);
+                        const empty = document.getElementById('discussion-empty');
+                        if (empty) { empty.remove(); }
+                        const list = document.getElementById('discussion-list');
+                        const card = document.createElement('div');
+                        card.className = 'card mb-2';
+                        card.innerHTML = '<div class="card-body py-2">' +
+                            '<div class="small text-muted"><i class="bi bi-person-circle"></i> ' + data.authorId + ' · ' + data.createdAt + '</div>' +
+                            '<div class="markdown-body small mt-1"></div></div>';
+                        // Plain text is inserted by the server-rendered page; keep it safe.
+                        card.querySelector('.markdown-body').textContent = data.messageMd;
+                        list.appendChild(card);
+                    } catch (e) { /* ignore malformed payloads */ }
+                };
+                // Graceful degradation: if the hub is unreachable, stop retrying
+                // instead of spamming the console with connection errors.
+                es.onerror = function () {
+                    console.warn('Mercure hub is offline or unreachable; real-time updates disabled.');
+                    es.close();
+                };
+            })();
+        </script>
+    {% endblock %}

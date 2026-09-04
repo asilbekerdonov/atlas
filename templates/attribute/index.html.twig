@@ -1,0 +1,245 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'nav.attributes'|trans }}{% endblock %}
+
+{% block body %}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h4 mb-0">{{ 'nav.attributes'|trans }}</h1>
+        <button class="btn btn-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#new-attribute">
+            <i class="bi bi-plus-lg"></i> {{ 'toolbar.create'|trans }}
+        </button>
+    </div>
+
+    <div class="collapse mb-3" id="new-attribute">
+        <div class="card card-body bg-body-tertiary">
+            <form id="attr-create-form" novalidate>
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label small mb-1">{{ 'attribute.name'|trans }}</label>
+                        <input class="form-control" name="name" required minlength="2">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small mb-1">{{ 'attribute.category'|trans }}</label>
+                        {# Categories come from the attribute_category lookup table (i18n strategy TBD). #}
+                        <select class="form-select" name="category" required>
+                            {% for category in categories %}
+                                <option value="{{ category.name }}">{{ category_label(category) }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small mb-1">{{ 'table.type'|trans }}</label>
+                        <select class="form-select" name="dataType">
+                            <option value="STRING">{{ 'attribute.type.string'|trans }}</option>
+                            <option value="TEXT">{{ 'attribute.type.text'|trans }}</option>
+                            <option value="IMAGE">{{ 'attribute.type.image'|trans }}</option>
+                            <option value="NUMERIC">{{ 'attribute.type.numeric'|trans }}</option>
+                            <option value="DATE">{{ 'attribute.type.date'|trans }}</option>
+                            <option value="PERIOD">{{ 'attribute.type.period'|trans }}</option>
+                            <option value="BOOLEAN">{{ 'attribute.type.boolean'|trans }}</option>
+                            <option value="ONE_OF_MANY">{{ 'attribute.type.one_of_many'|trans }}</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 d-none" id="create-options-wrap">
+                        <label class="form-label small mb-1">Options (comma-separated)</label>
+                        <input class="form-control" name="options" placeholder="A1, B1, C1">
+                    </div>
+                    <div class="col-md-1">
+                        <button class="btn btn-primary w-100" type="submit">{{ 'common.save'|trans }}</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div data-action-toolbar>
+        <div class="btn-toolbar mb-2 gap-2">
+            <button type="button" class="btn btn-outline-secondary btn-sm" data-action="edit-attr" disabled>
+                <i class="bi bi-pencil"></i> {{ 'toolbar.edit'|trans }}
+            </button>
+            <button type="button" class="btn btn-outline-danger btn-sm" data-action="delete" data-url-prefix="/attributes/" data-confirm="Delete attribute?" disabled>
+                <i class="bi bi-trash"></i> {{ 'toolbar.delete'|trans }}
+            </button>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle bg-body">
+                <thead class="table-light">
+                <tr>
+                    <th style="width:2.5rem"></th>
+                    <th>{{ 'attribute.name'|trans }}</th>
+                    <th>{{ 'attribute.category'|trans }}</th>
+                    <th>{{ 'attribute.type'|trans }}</th>
+                    <th>{{ 'attribute.builtin'|trans }}</th>
+                    <th>{{ 'attribute.active'|trans }}</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for attribute in attributes %}
+                    <tr data-row-id="{{ attribute.id }}">
+                        <td><input type="checkbox" class="form-check-input" aria-label="Select"></td>
+                        <td>{{ attribute.name }}</td>
+                        {# TEMPORARY raw name — i18n strategy (A raw / B slug-translate) awaits tech-lead decision. #}
+                        <td>{{ category_label(attribute.category) }}</td>
+                        <td><span class="badge text-bg-light border">{{ attribute.dataType.translationKey()|trans }}</span></td>
+                        <td>{{ attribute.isBuiltIn ? 'common.yes'|trans : 'common.no'|trans }}</td>
+                        <td>{{ attribute.isActive ? 'common.yes'|trans : 'common.no'|trans }}</td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="6" class="text-center text-muted py-4">{{ 'table.empty'|trans }}</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {# ---------- Edit modal ---------- #}
+    <div class="modal fade" id="attribute-edit-modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">{{ 'toolbar.edit'|trans }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="attr-edit-form">
+                        <input type="hidden" name="id">
+                        <div class="mb-2">
+                            <label class="form-label small mb-1">{{ 'attribute.name'|trans }}</label>
+                            <input class="form-control" name="name" required minlength="2">
+                        </div>
+                        <div class="row g-2 mb-2">
+                            <div class="col-7">
+                                <label class="form-label small mb-1">{{ 'attribute.category'|trans }}</label>
+                                <select class="form-select" name="category" required>
+                                    {% for category in categories %}
+                                        <option value="{{ category.name }}">{{ category_label(category) }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-5">
+                                <label class="form-label small mb-1">{{ 'table.type'|trans }}</label>
+                                <select class="form-select" name="dataType">
+                                    <option value="STRING">{{ 'attribute.type.string'|trans }}</option>
+                                    <option value="TEXT">{{ 'attribute.type.text'|trans }}</option>
+                                    <option value="IMAGE">{{ 'attribute.type.image'|trans }}</option>
+                                    <option value="NUMERIC">{{ 'attribute.type.numeric'|trans }}</option>
+                                    <option value="DATE">{{ 'attribute.type.date'|trans }}</option>
+                                    <option value="PERIOD">{{ 'attribute.type.period'|trans }}</option>
+                                    <option value="BOOLEAN">{{ 'attribute.type.boolean'|trans }}</option>
+                                    <option value="ONE_OF_MANY">{{ 'attribute.type.one_of_many'|trans }}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-2 d-none" id="edit-options-wrap">
+                            <label class="form-label small mb-1">Options (comma-separated)</label>
+                            <input class="form-control" name="options" placeholder="A1, B1, C1">
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label small mb-1">Description</label>
+                            <textarea class="form-control" name="description" rows="2" maxlength="1000"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="attr-edit-save">{{ 'common.save'|trans }}</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        (function () {
+            'use strict';
+
+            function showError(text) {
+                alert('Error: ' + text);
+            }
+
+            function splitOptions(value) {
+                return value.split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+            }
+
+            function collectForm(form) {
+                const data = new FormData(form);
+                return {
+                    name: data.get('name'),
+                    category: data.get('category'),
+                    dataType: data.get('dataType'),
+                    description: (data.get('description') || '') === '' ? null : data.get('description'),
+                    options: data.get('dataType') === 'ONE_OF_MANY' ? splitOptions(data.get('options') || '') : []
+                };
+            }
+
+            function submitJson(url, payload) {
+                return fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify(payload)
+                }).then(function (r) {
+                    return r.json().then(function (d) { return { ok: r.ok, status: r.status, data: d }; });
+                });
+            }
+
+            // ---------- Create ----------
+            const createForm = document.getElementById('attr-create-form');
+            const createOptionsWrap = document.getElementById('create-options-wrap');
+            const createType = createForm.querySelector('[name="dataType"]');
+            createType.addEventListener('change', function () {
+                createOptionsWrap.classList.toggle('d-none', createType.value !== 'ONE_OF_MANY');
+            });
+
+            createForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+                submitJson('{{ path('attribute_new') }}', collectForm(createForm)).then(function (res) {
+                    if (res.ok) { window.location.reload(); }
+                    else { showError((res.data && (res.data.message || res.data.error)) || 'Failed to create'); }
+                });
+            });
+
+            // ---------- Edit modal ----------
+            const editBtn = document.querySelector('[data-action="edit-attr"]');
+            const modal = document.getElementById('attribute-edit-modal');
+            const editForm = document.getElementById('attr-edit-form');
+            const editOptionsWrap = document.getElementById('edit-options-wrap');
+            const editType = editForm.querySelector('[name="dataType"]');
+
+            editType.addEventListener('change', function () {
+                editOptionsWrap.classList.toggle('d-none', editType.value !== 'ONE_OF_MANY');
+            });
+
+            function selectedRowId() {
+                const row = document.querySelector('tr[data-row-id].selected');
+                return row ? row.dataset.rowId : null;
+            }
+
+            editBtn.addEventListener('click', function () {
+                const id = selectedRowId();
+                if (!id) { return; }
+                fetch('/api/attributes/' + id, { headers: { 'Accept': 'application/json' } })
+                    .then(function (r) { return r.json(); })
+                    .then(function (a) {
+                        editForm.querySelector('[name="id"]').value = a.id;
+                        editForm.querySelector('[name="name"]').value = a.name;
+                        editForm.querySelector('[name="category"]').value = a.category;
+                        editForm.querySelector('[name="dataType"]').value = a.dataType;
+                        editForm.querySelector('[name="description"]').value = a.description || '';
+                        editForm.querySelector('[name="options"]').value = (a.options || []).map(function (o) { return o.label; }).join(', ');
+                        editOptionsWrap.classList.toggle('d-none', a.dataType !== 'ONE_OF_MANY');
+                        bootstrap.Modal.getOrCreateInstance(modal).show();
+                    }).catch(function () { showError('Failed to load attribute'); });
+            });
+
+            document.getElementById('attr-edit-save').addEventListener('click', function () {
+                const id = editForm.querySelector('[name="id"]').value;
+                submitJson('/attributes/' + id + '/edit', collectForm(editForm)).then(function (res) {
+                    if (res.ok) { window.location.reload(); }
+                    else { showError((res.data && (res.data.message || res.data.error)) || 'Failed to save'); }
+                });
+            });
+        })();
+    </script>
+{% endblock %}

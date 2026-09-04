@@ -1,0 +1,9 @@
+twig:
+    file_name_pattern: '*.twig'
+    globals:
+        # Lazy service: counts CVs submitted in the last 24 h for the header badge.
+        newCvsBadge: '@App\Twig\NewCvsBadgeProvider'
+
+when@test:
+    twig:
+        strict_variables: true

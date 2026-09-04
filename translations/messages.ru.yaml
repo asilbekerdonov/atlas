@@ -1,0 +1,144 @@
+nav.positions: Вакансии
+nav.stats: Статистика
+nav.profile: Мой профиль
+nav.attributes: Библиотека атрибутов
+nav.new_position: Создать вакансию
+nav.users: Пользователи
+nav.login: Войти
+nav.logout: Выйти
+nav.search_placeholder: Поиск вакансий и CV…
+nav.theme.dark: Тёмная тема
+nav.theme.light: Светлая тема
+nav.language: Язык
+
+home.title: CV Платформа
+home.latest: Последние вакансии
+home.most_popular: Самые популярные вакансии
+home.tag_cloud: Облако тегов
+home.stats.cvs_24h: CV за 24 часа
+home.stats.positions: Вакансий
+home.stats.candidates: Кандидатов
+home.stats.recruiters: Рекрутеров
+home.stats.cvs: Подано CV
+home.no_positions: Вакансий пока нет.
+
+toolbar.create: Создать
+toolbar.edit: Изменить
+toolbar.duplicate: Дублировать
+toolbar.delete: Удалить
+toolbar.apply: Откликнуться / Создать CV
+toolbar.select_hint: Выберите строку, чтобы активировать действия
+toolbar.selected: Выбрано
+
+table.status: Статус
+table.likes: Лайки
+table.date: Дата
+table.position: Вакансия
+table.candidate: Кандидат
+table.empty: Нет данных для отображения.
+
+cv.publish: Опубликовать CV
+cv.published: Опубликовано
+cv.draft: Черновик
+cv.like: Нравится
+cv.likes_count: лайков
+cv.attributes: Атрибуты
+cv.projects: Релевантные проекты
+cv.empty_value: не заполнено
+cv.save_hint: Нажмите на значение, чтобы отредактировать
+
+profile.me: О себе
+profile.info: Информация
+profile.projects: Проекты
+profile.cvs: CV
+profile.first_name: Имя
+profile.last_name: Фамилия
+profile.location: Локация
+profile.avatar: Аватар
+profile.upload_avatar: Перетащите изображение сюда или нажмите для загрузки (JPEG/PNG/WebP, до 5 МБ)
+profile.add_attribute: Добавить атрибут…
+profile.recently_used: Недавно использованные
+profile.autosave.saved: Все изменения сохранены
+profile.autosave.saving: Сохранение…
+profile.autosave.conflict_title: Конфликт данных
+profile.autosave.conflict_body: Данные были изменены в другой сессии.
+profile.autosave.reload: Перезагрузить актуальные данные
+profile.remove_value: Удалить значение
+profile.cv_unpublished: 'CV «%position%» снято с публикации: атрибут «%attribute%» больше не заполнен'
+profile.new_project: Новый проект
+profile.project.name: Название проекта
+profile.project.period: Период
+profile.project.description: Описание (Markdown)
+profile.project.confirm_delete: Удалить этот проект?
+profile.project.conflict_title: Конфликт данных
+profile.project.conflict_body: Этот проект был изменён в другой сессии.
+profile.project.conflict_reload: Перезагрузить данные
+profile.project.conflict_keep_mine: Сохранить мои изменения
+
+discussion.title: Обсуждение
+discussion.post: Отправить
+discussion.message_placeholder: Напишите сообщение…
+discussion.empty: Сообщений пока нет.
+
+attribute.name: Название
+attribute.category: Категория
+attribute.type: Тип
+attribute.builtin: Встроенный
+attribute.active: Активен
+attribute.actions: Действия
+
+# --- i18n audit additions ---
+common.yes: Да
+common.no: Нет
+common.save: Сохранить
+common.view: Открыть
+common.delete: Удалить
+
+table.company: Компания
+table.level: Уровень
+table.tags: Теги
+table.type: Тип
+table.required: Обязательный
+table.attribute: Атрибут
+table.required_marked: обязательно
+
+position.max_projects: '%count% макс. проектов'
+position.public: публичная
+position.private: частная
+position.attributes_tab: Атрибуты
+
+attribute.type.string: Строка
+attribute.type.text: Текст
+attribute.type.image: Изображение
+attribute.type.numeric: Число
+attribute.type.date: Дата
+attribute.type.period: Период
+attribute.type.boolean: Флажок
+attribute.type.one_of_many: Выпадающий список
+
+attribute.category.certification: Сертификация
+attribute.category.domain_knowledge: Знания в предметной области
+attribute.category.personal_information: Личная информация
+attribute.category.soft_skills: Мягкие навыки
+attribute.category.technical_skills: Технические навыки
+attribute.category.languages: Языки
+
+cv.applied: Вы откликнулись
+cv.required_badge: обязательно
+
+search.title: Поиск
+search.positions: Вакансии
+search.published_cvs: Опубликованные CV
+search.candidate: Кандидат
+
+admin.title: Пользователи
+admin.email: Email
+admin.roles: Роли
+admin.blocked: Заблокирован
+admin.created: Создан
+admin.active: активен
+admin.blocked_badge: заблокирован
+admin.block_unblock: Блокировать / Разблокировать
+
+position.cv_list: 'CV — %title%'
+position.cv_count: CV

@@ -1,0 +1,253 @@
+{% extends 'base.html.twig' %}
+
+{% set selectedRules = [] %}
+{% if position %}
+    {% set selectedIds = position.templateAttributes|map(ta => ta.attribute.id) %}
+    {% set requiredIds = position.templateAttributes|filter(ta => ta.isRequired)|map(ta => ta.attribute.id) %}
+    {% for rule in position.accessRules %}
+        {% set selectedRules = selectedRules|merge([{attributeId: rule.attribute.id, operator: rule.operator.value, ruleValue: rule.ruleValue}]) %}
+    {% endfor %}
+{% endif %}
+
+{% block title %}{{ position ? 'toolbar.edit'|trans : 'nav.new_position'|trans }}{% endblock %}
+
+{% block body %}
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+            <h1 class="h4 mb-3">{{ position ? 'toolbar.edit'|trans : 'nav.new_position'|trans }}</h1>
+
+            <form id="position-form" class="card shadow-sm" method="POST" action="{{ position ? path('position_edit_post', {id: position.id}) : path('position_new_post') }}" novalidate>
+                <div class="card-body">
+                    <input type="hidden" name="version" value="{{ position ? position.version : 1 }}">
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label class="form-label fw-semibold">Title</label>
+                            <input class="form-control" name="title" value="{{ position ? position.title : '' }}" required minlength="3"
+                                   placeholder="e.g. Junior Data Engineer @ Acme Corp">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Company</label>
+                            <input class="form-control" name="companyName" value="{{ position ? position.companyName ?? '' : '' }}"
+                                   placeholder="e.g. Acme Corp">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Short description</label>
+                            <textarea class="form-control" name="shortDescription" rows="3" required>{{ position ? position.shortDescription : '' }}</textarea>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Level</label>
+                            <select class="form-select" name="level">
+                                <option value="">—</option>
+                                {% for level in ['Junior', 'Middle', 'Senior', 'Lead', 'C-Level'] %}
+                                    <option value="{{ level }}" {{ position and position.level == level ? 'selected' : '' }}>{{ level }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Max projects in CV</label>
+                            <input class="form-control" type="number" name="maxProjects" min="1" max="10" value="{{ position ? position.maxProjects : 4 }}">
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end pb-2">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="isPublic" id="isPublic" {{ position and position.isPublic ? 'checked' : '' }}>
+                                <label class="form-check-label" for="isPublic">Public position</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+                    <h2 class="h6 fw-bold">Template attributes</h2>
+                    <div class="row g-2">
+                        {% for attribute in attributes %}
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input template-attr" type="checkbox" data-attr-id="{{ attribute.id }}"
+                                           id="ta-{{ attribute.id }}" {{ position and attribute.id in selectedIds ? 'checked' : '' }}>
+                                    <label class="form-check-label" for="ta-{{ attribute.id }}">{{ attribute.name }}
+                                        <span class="text-muted small">{{ attribute.dataType.translationKey()|trans }}</span>
+                                    </label>
+                                    <div class="form-check form-check-inline ms-3">
+                                        <input class="form-check-input template-required" type="checkbox" id="tar-{{ attribute.id }}"
+                                               data-attr-id="{{ attribute.id }}" {{ position and attribute.id in requiredIds ? 'checked' : '' }}>
+                                        <label class="form-check-label small" for="tar-{{ attribute.id }}">required</label>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <hr>
+                    <h2 class="h6 fw-bold">Access rules</h2>
+                    <div id="rules-list" class="mb-2"></div>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="rule-add"><i class="bi bi-plus-lg"></i> Add rule</button>
+
+                    <hr>
+                    <h2 class="h6 fw-bold">Relevance tags</h2>
+                    <input class="form-control" id="position-tags" value="{{ position ? position.tags|map(t => t.name)|join(', ') : '' }}">
+
+                    <div class="mt-4">
+                        <button class="btn btn-primary" type="submit"><i class="bi bi-check-lg"></i> {{ 'common.save'|trans }}</button>
+                        <a class="btn btn-outline-secondary" href="{{ path('position_index') }}">Cancel</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        (function () {
+            'use strict';
+
+            const form = document.getElementById('position-form');
+            const attributes = {{ attributes|map(a => {id: a.id, name: a.name})|json_encode|raw }};
+            const rawOps = {{ operators|default([])|map(o => o.value)|json_encode|raw }};
+            const fallbackOperators = ['EQUALS', 'NOT_EQUALS', 'GREATER_THAN', 'GREATER_THAN_OR_EQUAL', 'LESS_THAN', 'LESS_THAN_OR_EQUAL', 'IS_CHECKED', 'CONTAINS'];
+            const operators = (Array.isArray(rawOps) && rawOps.length > 0) ? rawOps : fallbackOperators;
+            const existingRules = Array.isArray({{ selectedRules|default([])|json_encode|raw }}) ? {{ selectedRules|default([])|json_encode|raw }} : [];
+            const postUrl = form.getAttribute('action');
+
+            let tagify = null;
+            const tagsInput = document.getElementById('position-tags');
+            if (tagsInput && window.Tagify) {
+                tagify = new Tagify(tagsInput, { dropdown: { enabled: 0 } });
+            }
+
+            // ---------- Access rules builder ----------
+            const rulesList = document.getElementById('rules-list');
+
+            function ruleRow(data) {
+                const row = document.createElement('div');
+                row.className = 'row g-2 mb-2 align-items-center';
+                row.innerHTML =
+                    '<div class="col-md-4"><select class="form-select form-select-sm rule-attr"></select></div>' +
+                    '<div class="col-md-3"><select class="form-select form-select-sm rule-op"></select></div>' +
+                    '<div class="col-md-4"><input class="form-control form-control-sm rule-value" placeholder="Value"></div>' +
+                    '<div class="col-auto"><button type="button" class="btn btn-sm btn-outline-danger rule-remove"><i class="bi bi-x-lg"></i></button></div>';
+
+                const attrSel = row.querySelector('.rule-attr');
+                attributes.forEach(function (a) {
+                    const opt = document.createElement('option');
+                    opt.value = a.id;
+                    opt.textContent = a.name;
+                    attrSel.appendChild(opt);
+                });
+                if (data) { attrSel.value = data.attributeId; }
+
+                const opSel = row.querySelector('.rule-op');
+                operators.forEach(function (op) {
+                    const opt = document.createElement('option');
+                    opt.value = op;
+                    opt.textContent = op;
+                    opSel.appendChild(opt);
+                });
+                if (data) { opSel.value = data.operator; }
+
+                if (data) { row.querySelector('.rule-value').value = data.ruleValue; }
+                row.querySelector('.rule-remove').addEventListener('click', function () { row.remove(); });
+                return row;
+            }
+
+            if (existingRules.length > 0) {
+                existingRules.forEach(function (r) { rulesList.appendChild(ruleRow(r)); });
+            } else {
+                rulesList.appendChild(ruleRow(null)); // one empty starter row
+            }
+            document.getElementById('rule-add').addEventListener('click', function () { rulesList.appendChild(ruleRow(null)); });
+
+            // UX: checkbox state stays consistent when editing.
+            // Ticking "required" also selects the attribute…
+            form.querySelectorAll('.template-required').forEach(function (reqCb) {
+                reqCb.addEventListener('change', function () {
+                    if (this.checked) {
+                        const attrId = this.getAttribute('data-attr-id');
+                        const mainCb = form.querySelector('.template-attr[data-attr-id="' + attrId + '"]');
+                        if (mainCb) { mainCb.checked = true; }
+                    }
+                });
+            });
+
+            // …and unchecking the attribute unchecks its "required" box.
+            // Without this the attribute would stay selected on save and the
+            // checkbox would appear to "reset" on the next edit.
+            form.querySelectorAll('.template-attr').forEach(function (mainCb) {
+                mainCb.addEventListener('change', function () {
+                    if (this.checked) { return; }
+                    const attrId = this.getAttribute('data-attr-id');
+                    const reqCb = form.querySelector('.template-required[data-attr-id="' + attrId + '"]');
+                    if (reqCb) { reqCb.checked = false; }
+                });
+            });
+
+            // ---------- Submit ----------
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                // An attribute is selected when EITHER its main checkbox or its
+                // "required" checkbox is checked (ticking "required" alone must
+                // include the attribute in the vacancy).
+                const templateAttributes = [];
+                form.querySelectorAll('.template-attr').forEach(function (cb) {
+                    const id = parseInt(cb.getAttribute('data-attr-id') || '0', 10);
+                    const reqCb = form.querySelector('.template-required[data-attr-id="' + id + '"]');
+                    const isSelected = cb.checked || !!(reqCb && reqCb.checked);
+                    if (isSelected && !isNaN(id) && id > 0) {
+                        templateAttributes.push({ attributeId: id, isRequired: !!(reqCb && reqCb.checked), sortOrder: templateAttributes.length });
+                    }
+                });
+
+                const accessRules = [];
+                rulesList.querySelectorAll('.rule-attr').forEach(function (sel) {
+                    const row = sel.closest('.row');
+                    const op = row.querySelector('.rule-op').value;
+                    const ruleValue = row.querySelector('.rule-value').value;
+                    if (sel.value && op) {
+                        accessRules.push({ attributeId: parseInt(sel.value, 10), operator: op, ruleValue: ruleValue });
+                    }
+                });
+
+                const payload = {
+                    version: parseInt((form.querySelector('[name="version"]') || {}).value || '1', 10),
+                    title: form.querySelector('[name="title"]').value,
+                    shortDescription: form.querySelector('[name="shortDescription"]').value,
+                    companyName: form.querySelector('[name="companyName"]').value || null,
+                    level: form.querySelector('[name="level"]').value || null,
+                    isPublic: form.querySelector('[name="isPublic"]').checked,
+                    maxProjects: parseInt(form.querySelector('[name="maxProjects"]').value || '4', 10),
+                    templateAttributes: templateAttributes,
+                    accessRules: accessRules,
+                    tags: tagify ? tagify.value.map(function (t) { return t.value; }) : []
+                };
+
+                // Diagnostic aid: inspect what actually leaves the browser
+                // (DevTools → Network → POST /positions/new → Payload).
+                console.log('position payload', payload);
+
+                const submitBtn = form.querySelector('button[type="submit"]');
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Saving…';
+
+                fetch(postUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify(payload)
+                }).then(function (r) {
+                    return r.json().then(function (d) { return { ok: r.ok, status: r.status, data: d }; });
+                }).then(function (res) {
+                    if (res.ok && res.data.redirectUrl) {
+                        window.location.href = res.data.redirectUrl; // explicit navigation for fetch
+                        return;
+                    }
+                    alert('Error: ' + (res.data.message || res.data.errors || res.data.error || 'check the fields'));
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Save';
+                }).catch(function () {
+                    alert('Network error while saving');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Save';
+                });
+            });
+        })();
+    </script>
+{% endblock %}

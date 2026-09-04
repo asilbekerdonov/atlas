@@ -1,0 +1,36 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}CVs for {{ position.title }}{% endblock %}
+
+{% block body %}
+    <h1 class="h4">{{ 'position.cv_list'|trans({'%title%': position.title}) }}</h1>
+
+    <div data-action-toolbar>
+        <div class="btn-toolbar mb-2 gap-2">
+            <button type="button" class="btn btn-outline-primary btn-sm" data-action="view" data-url-prefix="/cvs/" disabled>
+                <i class="bi bi-eye"></i> {{ 'common.view'|trans }}
+            </button>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle bg-body">
+                <thead class="table-light">
+                <tr><th style="width:2.5rem"></th><th>{{ 'search.candidate'|trans }}</th><th>{{ 'table.status'|trans }}</th><th>{{ 'table.likes'|trans }}</th><th>{{ 'table.date'|trans }}</th></tr>
+                </thead>
+                <tbody>
+                {% for cv in cvs %}
+                    <tr data-row-id="{{ cv.id }}">
+                        <td><input type="checkbox" class="form-check-input" aria-label="Select"></td>
+                        <td><a class="position-title fw-bold text-decoration-none" href="{{ path('cv_show', {id: cv.id}) }}">{{ cv.candidate.email }}</a></td>
+                        <td><span class="badge text-bg-success">{{ 'cv.published'|trans }}</span></td>
+                        <td><i class="bi bi-heart-fill text-danger"></i> {{ cv.likesCount }}</td>
+                        <td>{{ cv.createdAt|date('Y-m-d') }}</td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="5" class="text-center text-muted py-4">{{ 'table.empty'|trans }}</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

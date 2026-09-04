@@ -1,0 +1,144 @@
+nav.positions: Positions
+nav.stats: Statistics
+nav.profile: My profile
+nav.attributes: Attribute library
+nav.new_position: New position
+nav.users: Users
+nav.login: Login
+nav.logout: Logout
+nav.search_placeholder: Search positions and CVs…
+nav.theme.dark: Dark theme
+nav.theme.light: Light theme
+nav.language: Language
+
+home.title: CV Platform
+home.latest: Latest positions
+home.most_popular: Most popular positions
+home.tag_cloud: Tag cloud
+home.stats.cvs_24h: CVs in last 24h
+home.stats.positions: Positions
+home.stats.candidates: Candidates
+home.stats.recruiters: Recruiters
+home.stats.cvs: CVs submitted
+home.no_positions: No positions yet.
+
+toolbar.create: Create
+toolbar.edit: Edit
+toolbar.duplicate: Duplicate
+toolbar.delete: Delete
+toolbar.apply: Apply / Create CV
+toolbar.select_hint: Select a row to enable actions
+toolbar.selected: Selected
+
+table.status: Status
+table.likes: Likes
+table.date: Date
+table.position: Position
+table.candidate: Candidate
+table.empty: No rows to display.
+
+cv.publish: Publish CV
+cv.published: Published
+cv.draft: Draft
+cv.like: Like
+cv.likes_count: likes
+cv.attributes: Attributes
+cv.projects: Relevant projects
+cv.empty_value: not filled
+cv.save_hint: Click a value to edit it in place
+
+profile.me: Me
+profile.info: Info
+profile.projects: Projects
+profile.cvs: CVs
+profile.first_name: First name
+profile.last_name: Last name
+profile.location: Location
+profile.avatar: Avatar
+profile.upload_avatar: Drop an image here or click to upload (JPEG/PNG/WebP, max 5 MB)
+profile.add_attribute: Add attribute…
+profile.recently_used: Recently used
+profile.autosave.saved: All changes saved
+profile.autosave.saving: Saving…
+profile.autosave.conflict_title: Data conflict
+profile.autosave.conflict_body: Your data was changed in another session.
+profile.autosave.reload: Reload current data
+profile.remove_value: Remove value
+profile.cv_unpublished: 'CV "%position%" was unpublished: attribute "%attribute%" is no longer filled'
+profile.new_project: New project
+profile.project.name: Project name
+profile.project.period: Period
+profile.project.description: Description (Markdown)
+profile.project.confirm_delete: Delete this project?
+profile.project.conflict_title: Data conflict
+profile.project.conflict_body: This project was changed in another session.
+profile.project.conflict_reload: Reload data
+profile.project.conflict_keep_mine: Keep my changes
+
+discussion.title: Discussion
+discussion.post: Post
+discussion.message_placeholder: Write a message…
+discussion.empty: No messages yet.
+
+attribute.name: Name
+attribute.category: Category
+attribute.type: Type
+attribute.builtin: Built-in
+attribute.active: Active
+attribute.actions: Actions
+
+# --- i18n audit additions ---
+common.yes: Yes
+common.no: No
+common.save: Save
+common.view: View
+common.delete: Delete
+
+table.company: Company
+table.level: Level
+table.tags: Tags
+table.type: Type
+table.required: Required
+table.attribute: Attribute
+table.required_marked: required
+
+position.max_projects: '%count% max project(s)'
+position.public: public
+position.private: private
+position.attributes_tab: Attributes
+
+attribute.type.string: String
+attribute.type.text: Text
+attribute.type.image: Image
+attribute.type.numeric: Number
+attribute.type.date: Date
+attribute.type.period: Period
+attribute.type.boolean: Checkbox
+attribute.type.one_of_many: Dropdown
+
+attribute.category.certification: Certification
+attribute.category.domain_knowledge: Domain knowledge
+attribute.category.personal_information: Personal info
+attribute.category.soft_skills: Soft skills
+attribute.category.technical_skills: Technical skills
+attribute.category.languages: Languages
+
+cv.applied: You have applied
+cv.required_badge: required
+
+search.title: Search
+search.positions: Positions
+search.published_cvs: Published CVs
+search.candidate: Candidate
+
+admin.title: Users
+admin.email: Email
+admin.roles: Roles
+admin.blocked: Blocked
+admin.created: Created
+admin.active: active
+admin.blocked_badge: blocked
+admin.block_unblock: Block / Unblock
+
+position.cv_list: 'CVs — %title%'
+position.cv_count: CV(s)

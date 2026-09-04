@@ -1,0 +1,201 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}CV — {{ view.firstName }} {{ view.lastName }}{% endblock %}
+
+{% block body %}
+    {% set isOwner = app.user is not null and app.user.id == cv.candidate.id %}
+    {% set hasEmptyRequired = view.attributes|filter(a => a.isRequired and a.isEmpty)|length > 0 %}
+    {% set isPublished = view.status.value == 'PUBLISHED' %}
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h1 class="h3 mb-1">{{ view.firstName }} {{ view.lastName }}</h1>
+            <div class="text-muted small">
+                {% if view.location %}<i class="bi bi-geo-alt"></i> {{ view.location }} · {% endif %}
+                {# data-cv-status is the SINGLE DOM hook the publish JS updates
+                   (badge + action area) straight from the server response. #}
+                <span class="badge {{ isPublished ? 'text-bg-success' : 'text-bg-secondary' }}"
+                      data-cv-status="{{ isPublished ? 'PUBLISHED' : 'DRAFT' }}"
+                      data-published-label="{{ 'cv.published'|trans }}"
+                      data-draft-label="{{ 'cv.draft'|trans }}">
+                    {{ isPublished ? 'cv.published'|trans : 'cv.draft'|trans }}
+                </span>
+            </div>
+        </div>
+        <div class="d-flex gap-2 align-items-center">
+            {% if isOwner and isPublished %}
+                {# Published: a status indicator, NOT an action button. #}
+                <span class="btn btn-success" id="publish-cv-done" aria-disabled="true">
+                    <i class="bi bi-check-circle"></i> {{ 'cv.published'|trans }}
+                </span>
+            {% elseif isOwner %}
+                <button class="btn btn-success" id="publish-cv"
+                        data-url="{{ path('cv_publish', {id: cv.id}) }}"
+                        {{ hasEmptyRequired ? 'disabled' : '' }}>
+                    <i class="bi bi-send-check"></i> {{ 'cv.publish'|trans }}
+                </button>
+            {% endif %}
+            {% if is_granted('ROLE_RECRUITER') %}
+                <button class="btn btn-outline-danger" id="like-cv" data-url="{{ path('cv_like', {id: cv.id}) }}">
+                    <i class="bi bi-heart{% if cv.likesCount > 0 %}-fill{% endif %}"></i>
+                    <span id="like-count">{{ cv.likesCount }}</span>
+                </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <h2 class="h5">{{ 'cv.attributes'|trans }}</h2>
+            <table class="table table-hover align-middle bg-body">
+                <tbody>
+                {% for attribute in view.attributes %}
+                    <tr>
+                        <td style="width:35%">
+                            {{ attribute.name }}
+                            {% if attribute.isRequired %}<span class="badge text-bg-warning">{{ 'cv.required_badge'|trans }}</span>{% endif %}
+                        </td>
+                        <td>
+                            {% if isOwner %}
+                                <div class="inplace-edit {{ attribute.isEmpty ? 'cv-empty' : '' }}"
+                                     data-cv-id="{{ cv.id }}"
+                                     data-attribute-id="{{ attribute.attributeId }}"
+                                     data-type="{{ attribute.dataType.value|lower }}"
+                                     data-current="{{ attribute.rawValue ?? '' }}"
+                                     data-display="{{ attribute.displayValue ?? '' }}"
+                                     data-version="{{ attribute.version ?? '' }}"
+                                     data-options='{{ attribute.options|json_encode|e('html_attr') }}'
+                                     data-empty-label="{{ 'cv.empty_value'|trans }}"
+                                     data-save-hint="{{ 'cv.save_hint'|trans }}"
+                                     data-empty="{{ attribute.isEmpty ? '1' : '' }}">
+                                    {{ attribute.isEmpty ? 'cv.empty_value'|trans : attribute.displayValue }}
+                                </div>
+                            {% else %}
+                                {% if attribute.isEmpty %}
+                                    <span class="cv-empty">{{ 'cv.empty_value'|trans }}</span>
+                                {% else %}
+                                    <span>{{ attribute.displayValue }}</span>
+                                {% endif %}
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="2" class="text-muted">{{ 'table.empty'|trans }}</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="col-lg-5">
+            <h2 class="h5">{{ 'cv.projects'|trans }}</h2>
+            {% for project in view.projects %}
+                <div class="card mb-2">
+                    <div class="card-body py-2">
+                        <div class="d-flex justify-content-between">
+                            <strong>{{ project.name }}</strong>
+                            <small class="text-muted">{{ project.startDate|date('Y-m-d') }} — {{ project.endDate ? project.endDate|date('Y-m-d') : 'now' }}</small>
+                        </div>
+                        <div class="markdown-body small">{{ project.descriptionMd|markdown_safe }}</div>
+                        <div>{% for tag in project.tags %}<span class="badge text-bg-secondary">{{ tag }}</span> {% endfor %}</div>
+                    </div>
+                </div>
+            {% else %}
+                <p class="text-muted">{{ 'table.empty'|trans }}</p>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    <script src="{{ asset('js/inplace-cv.js') }}"></script>
+    <script>
+        (function () {
+            'use strict';
+
+            window.CvPublish = {
+                refresh: function () {
+                    const btn = document.getElementById('publish-cv');
+                    if (!btn) { return; }
+                    const empty = document.querySelectorAll('.inplace-edit[data-empty="1"]:not(.cv-empty), .inplace-edit.cv-empty');
+                    btn.disabled = empty.length > 0;
+                }
+            };
+
+            const publishBtn = document.getElementById('publish-cv');
+            if (publishBtn) {
+                const badge = document.querySelector('[data-cv-status]');
+                const publishedLabel = badge ? (badge.dataset.publishedLabel || 'Published') : 'Published';
+                const draftLabel = badge ? (badge.dataset.draftLabel || 'Draft') : 'Draft';
+
+                // Renders BOTH the status badge and the action area from ONE
+                // source of truth: the server response ({status: PUBLISHED}).
+                const applyPublished = function () {
+                    if (badge) {
+                        badge.className = 'badge text-bg-success';
+                        badge.dataset.cvStatus = 'PUBLISHED';
+                        badge.textContent = publishedLabel;
+                    }
+                    // Replace the action button with the published indicator
+                    // (identical to the server-rendered Published markup).
+                    const done = document.createElement('span');
+                    done.className = 'btn btn-success';
+                    done.id = 'publish-cv-done';
+                    done.setAttribute('aria-disabled', 'true');
+                    done.innerHTML = '<i class="bi bi-check-circle"></i> ' + publishedLabel;
+                    publishBtn.replaceWith(done);
+                };
+
+                publishBtn.addEventListener('click', function () {
+                    fetch(publishBtn.dataset.url, { method: 'POST' })
+                        .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, status: r.status, d: d }; }); })
+                        .then(function (res) {
+                            if (res.ok && res.d.status === 'PUBLISHED') {
+                                applyPublished();
+                            } else if (res.status === 422) {
+                                alert('Missing: ' + (res.d.missingAttributes || []).map(function (a) { return a.name; }).join(', '));
+                            }
+                        });
+                });
+            }
+
+            const likeBtn = document.getElementById('like-cv');
+            if (likeBtn) {
+                const likeIcon = likeBtn.querySelector('i');
+                const likeCount = document.getElementById('like-count');
+                // Client-side toggle state; the server response is the source
+                // of truth and replaces it on arrival.
+                let liked = likeIcon.classList.contains('bi-heart-fill');
+                let inFlight = false;
+
+                const render = function (isLiked, count) {
+                    liked = isLiked;
+                    likeIcon.className = isLiked ? 'bi bi-heart-fill' : 'bi bi-heart';
+                    likeCount.textContent = count;
+                };
+
+                likeBtn.addEventListener('click', function () {
+                    if (inFlight) { return; }
+                    inFlight = true;
+
+                    // Optimistic update: flip the UI immediately…
+                    const nextLiked = !liked;
+                    const prevLiked = liked;
+                    const prevCount = parseInt(likeCount.textContent, 10) || 0;
+                    render(nextLiked, Math.max(0, prevCount + (nextLiked ? 1 : -1)));
+
+                    fetch(likeBtn.dataset.url, { method: 'POST' })
+                        .then(function (r) { return r.json(); })
+                        .then(function (d) {
+                            // …then reconcile with the server value.
+                            render(d.liked, d.likesCount);
+                        })
+                        .catch(function () {
+                            // Roll back on network failure.
+                            render(prevLiked, prevCount);
+                        })
+                        .finally(function () { inFlight = false; });
+                });
+            }
+        })();
+    </script>
+{% endblock %}

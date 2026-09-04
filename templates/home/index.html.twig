@@ -1,0 +1,66 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'home.title'|trans }}{% endblock %}
+
+{% block body %}
+    <h1 class="h3 mb-4">{{ 'home.title'|trans }}</h1>
+
+    <div class="row g-3 mb-4 text-center">
+        <div class="col"><div class="card shadow-sm"><div class="card-body"><div class="fs-3 fw-bold">{{ stats.cvs_last_24h }}</div><div class="text-muted small">{{ 'home.stats.cvs_24h'|trans }}</div></div></div></div>
+        <div class="col"><div class="card shadow-sm"><div class="card-body"><div class="fs-3 fw-bold">{{ stats.positions }}</div><div class="text-muted small">{{ 'home.stats.positions'|trans }}</div></div></div></div>
+        <div class="col"><div class="card shadow-sm"><div class="card-body"><div class="fs-3 fw-bold">{{ stats.candidates }}</div><div class="text-muted small">{{ 'home.stats.candidates'|trans }}</div></div></div></div>
+        <div class="col"><div class="card shadow-sm"><div class="card-body"><div class="fs-3 fw-bold">{{ stats.recruiters }}</div><div class="text-muted small">{{ 'home.stats.recruiters'|trans }}</div></div></div></div>
+        <div class="col"><div class="card shadow-sm"><div class="card-body"><div class="fs-3 fw-bold">{{ stats.cvs }}</div><div class="text-muted small">{{ 'home.stats.cvs'|trans }}</div></div></div></div>
+    </div>
+
+    <h2 class="h5 mt-4">{{ 'home.latest'|trans }}</h2>
+    <div class="table-responsive mb-4">
+        <table class="table table-hover align-middle bg-body home-table">
+            <thead class="table-light">
+            <tr><th>{{ 'table.position'|trans }}</th><th>{{ 'table.company'|trans }}</th><th>{{ 'table.tags'|trans }}</th></tr>
+            </thead>
+            <tbody>
+            {% for position in latestPositions %}
+                <tr>
+                    <td><a class="position-title" href="{{ path('position_show', {id: position.id}) }}">{{ position.title }}</a></td>
+                    <td>{{ position.companyName ?? '—' }}</td>
+                    <td>{% for tag in position.tags %}<span class="badge text-bg-secondary">{{ tag.name }}</span> {% endfor %}</td>
+                </tr>
+            {% else %}
+                <tr><td colspan="3" class="text-center text-muted py-4">{{ 'home.no_positions'|trans }}</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <h2 class="h5 mt-4">{{ 'home.most_popular'|trans }}</h2>
+    <div class="table-responsive mb-4">
+        <table class="table table-hover align-middle bg-body home-table">
+            <thead class="table-light">
+            <tr><th>{{ 'table.position'|trans }}</th><th>{{ 'table.status'|trans }}</th><th>{{ 'table.likes'|trans }}</th></tr>
+            </thead>
+            <tbody>
+            {% for position in topPositions %}
+                <tr>
+                    <td><a class="position-title" href="{{ path('position_show', {id: position.id}) }}">{{ position.title }}</a></td>
+                    <td>{{ position.cvs|length }} {{ 'position.cv_count'|trans }}</td>
+                    <td>{{ position.cvs|reduce((carry, cv) => carry + cv.likesCount, 0) }}</td>
+                </tr>
+            {% else %}
+                <tr><td colspan="3" class="text-center text-muted py-4">{{ 'table.empty'|trans }}</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <h2 class="h5 mt-4">{{ 'home.tag_cloud'|trans }}</h2>
+    <div class="tag-cloud mb-4">
+        {% for tag in tagCloud %}
+            {% set size = 0.85 + (tag.count / 10) %}
+            <a href="{{ path('search_index') }}?q={{ tag.name|url_encode }}"
+               class="badge text-bg-secondary" style="font-size: {{ size }}rem">{{ tag.name }} ({{ tag.count }})</a>
+        {% else %}
+            <span class="text-muted">—</span>
+        {% endfor %}
+    </div>
+{% endblock %}

@@ -1,0 +1,16 @@
+# Test-only service configuration: make the app services reachable from the
+# test container (they are otherwise removed by the compiler when unused).
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: true
+
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/Kernel.php'
+            - '../src/Entity/'
+            - '../src/Enum/'
+            - '../src/DTO/'
+            - '../src/Exception/'

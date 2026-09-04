@@ -1,0 +1,53 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Search{% endblock %}
+
+{% block body %}
+    <h1 class="h4">{{ 'search.title'|trans }}</h1>
+    <form method="get" action="{{ path('search_index') }}" class="row g-2 mb-4">
+        <div class="col-md-6">
+            <input class="form-control" type="search" name="q" value="{{ q }}" placeholder="{{ 'nav.search_placeholder'|trans }}">
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i></button>
+        </div>
+    </form>
+
+    {% if q %}
+        <h2 class="h5">{{ 'search.positions'|trans }}</h2>
+        <div class="table-responsive mb-4">
+            <table class="table table-hover align-middle bg-body">
+                <thead class="table-light"><tr><th>{{ 'table.position'|trans }}</th><th>Company</th><th>Level</th></tr></thead>
+                <tbody>
+                {% for position in positions %}
+                    <tr>
+                        <td><a class="position-title" href="{{ path('position_show', {id: position.id}) }}">{{ position.title }}</a></td>
+                        <td>{{ position.companyName ?? '—' }}</td>
+                        <td>{{ position.level ?? '—' }}</td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="3" class="text-center text-muted py-4">{{ 'table.empty'|trans }}</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <h2 class="h5">{{ 'search.published_cvs'|trans }}</h2>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle bg-body">
+                <thead class="table-light"><tr><th>{{ 'search.candidate'|trans }}</th><th>{{ 'table.position'|trans }}</th><th>{{ 'table.likes'|trans }}</th></tr></thead>
+                <tbody>
+                {% for cv in cvs %}
+                    <tr>
+                        <td><a class="position-title" href="{{ path('cv_show', {id: cv.id}) }}">{{ cv.candidate.email }}</a></td>
+                        <td>{{ cv.position.title }}</td>
+                        <td><i class="bi bi-heart-fill text-danger"></i> {{ cv.likesCount }}</td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="3" class="text-center text-muted py-4">{{ 'table.empty'|trans }}</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+{% endblock %}

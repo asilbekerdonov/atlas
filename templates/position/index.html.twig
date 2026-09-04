@@ -1,0 +1,70 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'nav.positions'|trans }}{% endblock %}
+
+{% block body %}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 mb-0">{{ 'nav.positions'|trans }}</h1>
+    </div>
+
+    <div data-action-toolbar>
+        <div class="btn-toolbar mb-2 gap-2" role="toolbar" aria-label="Position actions">
+            {% if is_granted('ROLE_RECRUITER') %}
+                <button type="button" class="btn btn-primary btn-sm" data-action="create" data-url="{{ path('position_new') }}">
+                    <i class="bi bi-plus-lg"></i> {{ 'toolbar.create'|trans }}
+                </button>
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-action="edit" data-url-prefix="{{ path('position_edit', {id: 0})|replace({'/0': ''}) }}" disabled>
+                    <i class="bi bi-pencil"></i> {{ 'toolbar.edit'|trans }}
+                </button>
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-action="duplicate" data-url-prefix="/positions/" disabled>
+                    <i class="bi bi-files"></i> {{ 'toolbar.duplicate'|trans }}
+                </button>
+                <button type="button" class="btn btn-outline-danger btn-sm" data-action="delete" data-url-prefix="/positions/" data-confirm="{{ 'toolbar.delete'|trans }}?" disabled>
+                    <i class="bi bi-trash"></i> {{ 'toolbar.delete'|trans }}
+                </button>
+            {% endif %}
+            {% if app.user and 'ROLE_CANDIDATE' in app.user.roles %}
+                <button type="button" class="btn btn-success btn-sm" data-action="apply" data-url-prefix="/positions/" disabled>
+                    <i class="bi bi-send"></i> {{ 'toolbar.apply'|trans }}
+                </button>
+            {% endif %}
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle bg-body">
+                <thead class="table-light">
+                <tr>
+                    <th style="width:2.5rem"></th>
+                    <th>{{ 'table.position'|trans }}</th>
+                    <th>{{ 'table.company'|trans }}</th>
+                    <th>{{ 'table.level'|trans }}</th>
+                    <th>{{ 'table.tags'|trans }}</th>
+                    <th class="text-end">CVs</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for position in positions %}
+                    {% set stats = cvStats[position.id] ?? {total: 0, new24: 0} %}
+                    <tr data-row-id="{{ position.id }}">
+                        <td><input type="checkbox" class="form-check-input" aria-label="Select"></td>
+                        <td>
+                            <a class="position-title" href="{{ path('position_show', {id: position.id}) }}">{{ position.title }}</a>
+                        </td>
+                        <td>{{ position.companyName ?? '—' }}</td>
+                        <td>{{ position.level ?? '—' }}</td>
+                        <td>{% for tag in tagMap[position.id] ?? [] %}<span class="badge text-bg-secondary">{{ tag.name }}</span> {% endfor %}</td>
+                        <td class="text-end text-nowrap">
+                            {{ stats.total }}
+                            {% if is_granted('ROLE_RECRUITER') and stats.new24 > 0 %}
+                                <span class="badge bg-success-subtle text-success border border-success-subtle ms-1">+{{ stats.new24 }} new</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="6" class="text-center text-muted py-4">{{ 'table.empty'|trans }}</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

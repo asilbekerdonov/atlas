@@ -1,0 +1,19 @@
+connect_google_start:
+    path: /connect/google
+    controller: App\Controller\OAuthController::start
+    defaults: { provider: google }
+
+connect_google_check:
+    # Path must match the "Authorized redirect URIs" registered in Google
+    # Cloud Console exactly (trailing slash included): http://127.0.0.1:8000/oauth/google/
+    path: /oauth/google/
+    controller: App\Controller\OAuthController::check
+
+connect_github_start:
+    path: /connect/github
+    controller: App\Controller\OAuthController::start
+    defaults: { provider: github }
+
+connect_github_check:
+    path: /connect/github/check
+    controller: App\Controller\OAuthController::check

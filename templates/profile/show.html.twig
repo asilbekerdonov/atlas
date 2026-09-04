@@ -1,0 +1,621 @@
+{% extends 'base.html.twig' %}
+
+{% set isOwner = app.user is not null and app.user.id == profile.user.id %}
+
+{% block title %}{{ 'nav.profile'|trans }}{% endblock %}
+
+{% block body %}
+    <h1 class="h3">{{ 'nav.profile'|trans }}
+        {% if not isOwner %}<span class="badge text-bg-secondary">{{ profile.user.email }}</span>{% endif %}
+    </h1>
+
+    <ul class="nav nav-tabs mb-3" id="profileTabs" role="tablist">
+        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-me">{{ 'profile.me'|trans }}</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-info">{{ 'profile.info'|trans }}</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-projects">{{ 'profile.projects'|trans }}</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-cvs">{{ 'profile.cvs'|trans }}</button></li>
+    </ul>
+
+    <div class="tab-content">
+        {# ---------- Me ---------- #}
+        <div class="tab-pane fade show active" id="tab-me">
+            <form data-autosave data-version="{{ profile.version }}" data-badge="#autosave-badge">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">{{ 'profile.first_name'|trans }}</label>
+                        <input class="form-control" data-autosave-field="firstName" value="{{ profile.firstName }}" {{ isOwner ? '' : 'disabled' }}>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">{{ 'profile.last_name'|trans }}</label>
+                        <input class="form-control" data-autosave-field="lastName" value="{{ profile.lastName }}" {{ isOwner ? '' : 'disabled' }}>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">{{ 'profile.location'|trans }}</label>
+                        <input class="form-control" data-autosave-field="location" value="{{ profile.location ?? '' }}" {{ isOwner ? '' : 'disabled' }}>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">{{ 'profile.avatar'|trans }}</label>
+                        {% if isOwner %}
+                            <div class="border rounded p-3 text-center text-muted" id="avatar-drop"
+                                 style="border-style: dashed !important">
+                                <i class="bi bi-cloud-arrow-up fs-3"></i>
+                                <div class="small">{{ 'profile.upload_avatar'|trans }}</div>
+                            </div>
+                            <input type="hidden" data-autosave-field="avatarUrl" value="{{ profile.avatarUrl ?? '' }}">
+                        {% else %}
+                            <div>{{ profile.avatarUrl ? '<img src="' ~ profile.avatarUrl ~ '" width="80" class="rounded">'|raw : '—' }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        {# ---------- Info ---------- #}
+        <div class="tab-pane fade" id="tab-info">
+            {% if isOwner %}
+                <div class="input-group mb-3" style="max-width: 420px">
+                    <input class="form-control" id="attribute-search" placeholder="{{ 'profile.add_attribute'|trans }}" autocomplete="off">
+                    <button class="btn btn-outline-secondary" id="attribute-add" type="button"><i class="bi bi-plus-lg"></i></button>
+                </div>
+                <div id="attribute-suggestions" class="list-group mb-3 d-none" style="max-width: 420px"></div>
+                <div class="text-muted small mb-2"><i class="bi bi-clock-history"></i> {{ 'profile.recently_used'|trans }}</div>
+            {% endif %}
+
+            <form data-autosave data-version="{{ profile.version }}" data-badge="#autosave-badge" id="info-autosave">
+                <div id="attribute-values">
+                    {% for value in profile.attributeValues %}
+                        {% set attr = value.attribute %}
+                        <div class="row g-2 mb-2 align-items-center" data-value-row>
+                            <div class="col-md-4">
+                                <strong>{{ attr.name }}</strong>
+                                <span class="text-muted small d-block">{{ attr.dataType.value }}</span>
+                            </div>
+                            <div class="col">
+                                {% if attr.dataType.value == 'ONE_OF_MANY' %}
+                                    <select class="form-select" data-attribute-id="{{ attr.id }}" {{ isOwner ? '' : 'disabled' }}>
+                                        <option value="">—</option>
+                                        {% for option in attr.options %}
+                                            <option value="{{ option.id }}" {{ value.valueOption and value.valueOption.id == option.id ? 'selected' : '' }}>{{ option.label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                {% elseif attr.dataType.value == 'BOOLEAN' %}
+                                    <select class="form-select" data-attribute-id="{{ attr.id }}" {{ isOwner ? '' : 'disabled' }}>
+                                        <option value="">—</option>
+                                        <option value="true" {{ value.valueBoolean is same as(true) ? 'selected' : '' }}>{{ 'common.yes'|trans }}</option>
+                                        <option value="false" {{ value.valueBoolean is same as(false) ? 'selected' : '' }}>{{ 'common.no'|trans }}</option>
+                                    </select>
+                                {% elseif attr.dataType.value == 'DATE' %}
+                                    <input type="date" class="form-control" data-attribute-id="{{ attr.id }}"
+                                           value="{{ value.valueDate ? value.valueDate|date('Y-m-d') : '' }}" {{ isOwner ? '' : 'disabled' }}>
+                                {% elseif attr.dataType.value == 'PERIOD' %}
+                                    <div class="d-flex gap-2">
+                                        <input type="date" class="form-control" data-attribute-id="{{ attr.id }}" data-attr-part="start"
+                                               value="{{ value.valueDateRangeStart ? value.valueDateRangeStart|date('Y-m-d') : '' }}" {{ isOwner ? '' : 'disabled' }}>
+                                        <input type="date" class="form-control" data-attribute-id="{{ attr.id }}" data-attr-part="end"
+                                               value="{{ value.valueDateRangeEnd ? value.valueDateRangeEnd|date('Y-m-d') : '' }}" {{ isOwner ? '' : 'disabled' }}>
+                                    </div>
+                                {% elseif attr.dataType.value == 'NUMERIC' %}
+                                    <input type="number" step="0.01" class="form-control" data-attribute-id="{{ attr.id }}"
+                                           value="{{ value.valueNumeric ?? '' }}" {{ isOwner ? '' : 'disabled' }}>
+                                {% elseif attr.dataType.value == 'TEXT' %}
+                                    <textarea class="form-control" rows="2" data-attribute-id="{{ attr.id }}" {{ isOwner ? '' : 'disabled' }}>{{ value.valueText ?? '' }}</textarea>
+                                {% else %}
+                                    <input class="form-control" data-attribute-id="{{ attr.id }}"
+                                           value="{{ value.valueString ?? '' }}" {{ isOwner ? '' : 'disabled' }}>
+                                {% endif %}
+                            </div>
+                            {% if isOwner %}
+                                <div class="col-auto">
+                                    <button type="button" class="btn btn-sm btn-outline-danger" data-remove-value="{{ value.id }}"
+                                            data-attribute-name="{{ attr.name }}" title="{{ 'profile.remove_value'|trans }}">
+                                        <i class="bi bi-dash-lg"></i>
+                                    </button>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+                <div id="attribute-values-new"></div>
+            </form>
+        </div>
+
+        {# ---------- Projects ---------- #}
+        <div class="tab-pane fade" id="tab-projects">
+            {% if isOwner %}
+                <button class="btn btn-primary btn-sm mb-3" data-bs-toggle="collapse" data-bs-target="#project-form">
+                    <i class="bi bi-plus-lg"></i> {{ 'profile.new_project'|trans }}
+                </button>
+                <div class="collapse mb-3" id="project-form">
+                    <form class="card card-body" id="project-create">
+                        <div class="row g-2">
+                            <div class="col-md-6"><input class="form-control" id="project-name" placeholder="{{ 'profile.project.name'|trans }}" required></div>
+                            <div class="col-md-3"><input class="form-control" type="date" id="project-start" required></div>
+                            <div class="col-md-3"><input class="form-control" type="date" id="project-end"></div>
+                            <div class="col-12"><textarea class="form-control" id="project-desc" rows="3" placeholder="{{ 'profile.project.description'|trans }}"></textarea></div>
+                            <div class="col-12"><input class="form-control" id="project-tags" placeholder="PHP, PostgreSQL…"></div>
+                            <div class="col-12"><button class="btn btn-primary btn-sm" type="submit">{{ 'common.save'|trans }}</button></div>
+                        </div>
+                    </form>
+                </div>
+            {% endif %}
+
+            <div class="list-group" id="project-list">
+                {% for project in projectViews %}
+                    <div class="list-group-item" data-project-row data-project-id="{{ project.id }}" data-version="{{ project.version }}">
+                        <div class="row g-2">
+                            <div class="col-md-6"><input class="form-control form-control-sm project-field" data-field="name" value="{{ project.name }}" {{ isOwner ? '' : 'disabled' }}></div>
+                            <div class="col-md-3"><input class="form-control form-control-sm project-field" type="date" data-field="startDate" value="{{ project.startDate }}" {{ isOwner ? '' : 'disabled' }}></div>
+                            <div class="col-md-3"><input class="form-control form-control-sm project-field" type="date" data-field="endDate" value="{{ project.endDate ?? '' }}" {{ isOwner ? '' : 'disabled' }}></div>
+                            <div class="col-12"><textarea class="form-control form-control-sm project-field" rows="2" data-field="descriptionMd" {{ isOwner ? '' : 'disabled' }}>{{ project.descriptionMd }}</textarea></div>
+                            <div class="col-12"><input class="form-control form-control-sm project-field project-tags" data-field="tags" value="{{ project.tags|join(', ')|e('html_attr') }}" {{ isOwner ? '' : 'disabled' }}></div>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-1">
+                            <small class="text-muted project-state" data-state>{{ 'profile.autosave.saved'|trans }}</small>
+                            {% if isOwner %}
+                                <button type="button" class="btn btn-sm btn-outline-danger project-delete" title="{{ 'toolbar.delete'|trans }}">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% else %}
+                    <p class="text-muted">{{ 'table.empty'|trans }}</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        {# ---------- CVs ---------- #}
+        <div class="tab-pane fade" id="tab-cvs">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle bg-body">
+                    <thead class="table-light">
+                    <tr><th>{{ 'table.position'|trans }}</th><th>{{ 'table.status'|trans }}</th><th>{{ 'table.likes'|trans }}</th><th>{{ 'table.date'|trans }}</th></tr>
+                    </thead>
+                    <tbody>
+                    {% for cv in profile.user.cvs %}
+                        <tr>
+                            <td><a class="position-title" href="{{ path('cv_show', {id: cv.id}) }}">{{ cv.position.title }}</a></td>
+                            <td><span class="badge {{ cv.status.value == 'PUBLISHED' ? 'text-bg-success' : 'text-bg-secondary' }}">{{ cv.status.value }}</span></td>
+                            <td><i class="bi bi-heart-fill text-danger"></i> {{ cv.likesCount }}</td>
+                            <td>{{ cv.createdAt|date('Y-m-d') }}</td>
+                        </tr>
+                    {% else %}
+                        <tr><td colspan="4" class="text-center text-muted py-4">{{ 'table.empty'|trans }}</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <span class="badge text-bg-success autosave-badge d-none" id="autosave-badge"
+          data-saved="{{ 'profile.autosave.saved'|trans }}" data-saving="{{ 'profile.autosave.saving'|trans }}"
+          data-waiting="…" data-conflict-title="{{ 'profile.autosave.conflict_title'|trans }}"
+          data-conflict-body="{{ 'profile.autosave.conflict_body'|trans }}" data-reload="{{ 'profile.autosave.reload'|trans }}">
+        {{ 'profile.autosave.saved'|trans }}
+    </span>
+{% endblock %}
+
+{% block javascripts %}
+    <script src="{{ asset('js/autosave.js') }}"></script>
+    <script>
+        (function () {
+            'use strict';
+            if (!{{ isOwner ? 'true' : 'false' }}) {
+                return;
+            }
+
+            // --- Avatar: presign + direct upload, then autosave the URL ---
+            const drop = document.getElementById('avatar-drop');
+            if (drop) {
+                drop.addEventListener('click', function () { const i = document.createElement('input'); i.type = 'file'; i.accept = 'image/jpeg,image/png,image/webp'; i.onchange = function () { uploadAvatar(i.files[0]); }; i.click(); });
+                drop.addEventListener('dragover', function (e) { e.preventDefault(); drop.classList.add('border-primary'); });
+                drop.addEventListener('dragleave', function () { drop.classList.remove('border-primary'); });
+                drop.addEventListener('drop', function (e) {
+                    e.preventDefault();
+                    drop.classList.remove('border-primary');
+                    if (e.dataTransfer.files.length) { uploadAvatar(e.dataTransfer.files[0]); }
+                });
+
+                function uploadAvatar(file) {
+                    if (!file) { return; }
+                    fetch('/api/media/presign', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ filename: file.name, mimeType: file.type, sizeBytes: file.size })
+                    }).then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+                    .then(function (res) {
+                        if (!res.ok) { alert(res.d.detail || res.d.message || 'Invalid image'); return; }
+                        const fd = new FormData();
+                        Object.keys(res.d.fields).forEach(function (k) { fd.append(k, res.d.fields[k]); });
+                        fd.append('file', file);
+                        return fetch(res.d.url, { method: 'POST', body: fd });
+                    }).then(function (r) {
+                        if (!r) { return; }
+                        return r.json();
+                    }).then(function (data) {
+                        if (data && data.secure_url) {
+                            const hidden = document.querySelector('[data-autosave-field="avatarUrl"]');
+                            if (hidden) {
+                                hidden.value = data.secure_url;
+                                hidden.dispatchEvent(new Event('change', { bubbles: true }));
+                            }
+                            // Показываем превью аватара сразу без перезагрузки
+                            drop.innerHTML = '<img src="' + data.secure_url + '" width="80" class="rounded" alt="avatar">';
+                        }
+                    }).catch(function () { /* non-fatal */ });
+                }
+            }
+
+            // --- Info: attribute autocomplete + add row ---
+            const search = document.getElementById('attribute-search');
+            const suggestions = document.getElementById('attribute-suggestions');
+            const addBtn = document.getElementById('attribute-add');
+            let selectedAttribute = null;
+
+            function fetchSuggestions(q) {
+                fetch('/api/attributes/search?q=' + encodeURIComponent(q) + '&limit=8')
+                    .then(function (r) { return r.json(); })
+                    .then(function (attrs) {
+                        suggestions.innerHTML = '';
+                        if (!attrs.length) { suggestions.classList.add('d-none'); return; }
+                        suggestions.classList.remove('d-none');
+                        attrs.forEach(function (a) {
+                            const btn = document.createElement('button');
+                            btn.type = 'button';
+                            btn.className = 'list-group-item list-group-item-action d-flex justify-content-between';
+                            btn.innerHTML = '<span>' + a.name + '</span><small class="text-muted">' + a.category + '</small>';
+                            btn.addEventListener('click', function () { selectedAttribute = a; search.value = a.name; suggestions.classList.add('d-none'); });
+                            suggestions.appendChild(btn);
+                        });
+                    });
+            }
+
+            if (search) {
+                search.addEventListener('input', function () { fetchSuggestions(search.value); });
+                search.addEventListener('blur', function () { setTimeout(function () { suggestions.classList.add('d-none'); }, 150); });
+            }
+
+            // Builds the right input widget for the attribute data type.
+            function editorFor(a) {
+                const wrap = document.createElement('div');
+                wrap.className = 'col-md-8';
+                if (a.dataType === 'ONE_OF_MANY') {
+                    const sel = document.createElement('select');
+                    sel.className = 'form-select';
+                    sel.dataset.attributeId = a.id;
+                    const none = document.createElement('option');
+                    none.value = '';
+                    none.textContent = '—';
+                    sel.appendChild(none);
+                    (a.options || []).forEach(function (o) {
+                        const opt = document.createElement('option');
+                        opt.value = o.id;
+                        opt.textContent = o.label;
+                        sel.appendChild(opt);
+                    });
+                    wrap.appendChild(sel);
+                } else if (a.dataType === 'BOOLEAN') {
+                    const sel = document.createElement('select');
+                    sel.className = 'form-select';
+                    sel.dataset.attributeId = a.id;
+                    sel.innerHTML = '<option value="">—</option><option value="true">{{ 'common.yes'|trans }}</option><option value="false">{{ 'common.no'|trans }}</option>';
+                    wrap.appendChild(sel);
+                } else if (a.dataType === 'DATE') {
+                    const input = document.createElement('input');
+                    input.type = 'date';
+                    input.className = 'form-control';
+                    input.dataset.attributeId = a.id;
+                    wrap.appendChild(input);
+                } else if (a.dataType === 'PERIOD') {
+                    const div = document.createElement('div');
+                    div.className = 'd-flex gap-2';
+                    ['start', 'end'].forEach(function (part) {
+                        const input = document.createElement('input');
+                        input.type = 'date';
+                        input.className = 'form-control';
+                        input.dataset.attributeId = a.id;
+                        input.dataset.attrPart = part;
+                        div.appendChild(input);
+                    });
+                    wrap.appendChild(div);
+                } else if (a.dataType === 'NUMERIC') {
+                    const input = document.createElement('input');
+                    input.type = 'number';
+                    input.step = '0.01';
+                    input.className = 'form-control';
+                    input.dataset.attributeId = a.id;
+                    wrap.appendChild(input);
+                } else if (a.dataType === 'TEXT') {
+                    const ta = document.createElement('textarea');
+                    ta.rows = 2;
+                    ta.className = 'form-control';
+                    ta.dataset.attributeId = a.id;
+                    wrap.appendChild(ta);
+                } else {
+                    const input = document.createElement('input');
+                    input.className = 'form-control';
+                    input.dataset.attributeId = a.id;
+                    wrap.appendChild(input);
+                }
+                return wrap;
+            }
+
+            if (addBtn) {
+                addBtn.addEventListener('click', function () {
+                    if (!selectedAttribute) {
+                        fetchSuggestions(''); return;
+                    }
+                    const a = selectedAttribute;
+                    const row = document.createElement('div');
+                    row.className = 'row g-2 mb-2 align-items-center';
+                    row.dataset.valueRow = '';
+                    const label = document.createElement('div');
+                    label.className = 'col-md-4';
+                    const strong = document.createElement('strong');
+                    strong.textContent = a.name;
+                    const type = document.createElement('span');
+                    type.className = 'text-muted small d-block';
+                    type.textContent = a.dataType;
+                    label.appendChild(strong);
+                    label.appendChild(type);
+                    row.appendChild(label);
+                    row.appendChild(editorFor(a));
+                    // "−" for a NOT-YET-SAVED row: only removes the DOM row
+                    // (no value exists server-side until autosave runs).
+                    const removeCell = document.createElement('div');
+                    removeCell.className = 'col-auto';
+                    const removeBtn = document.createElement('button');
+                    removeBtn.type = 'button';
+                    removeBtn.className = 'btn btn-sm btn-outline-danger';
+                    removeBtn.dataset.removeNew = '';
+                    removeBtn.innerHTML = '<i class="bi bi-dash-lg"></i>';
+                    removeCell.appendChild(removeBtn);
+                    row.appendChild(removeCell);
+                    document.getElementById('attribute-values-new').appendChild(row);
+                    selectedAttribute = null;
+                    search.value = '';
+                });
+            }
+
+            // --- Info: remove an attribute value (saved row → DELETE API,
+            // freshly-added row → just drop the DOM node, nothing saved yet) ---
+            const unpublishedTemplate = {{ 'profile.cv_unpublished'|trans|json_encode|raw }};
+            document.addEventListener('click', function (e) {
+                const removeNew = e.target.closest('[data-remove-new]');
+                if (removeNew) {
+                    const newRow = removeNew.closest('[data-value-row]');
+                    if (newRow) { newRow.remove(); }
+                    return;
+                }
+
+                const removeValue = e.target.closest('[data-remove-value]');
+                if (!removeValue) { return; }
+
+                const row = removeValue.closest('[data-value-row]');
+                const valueId = removeValue.dataset.removeValue;
+                const attributeName = removeValue.dataset.attributeName || '';
+
+                fetch('/api/profile/attribute-value/' + valueId, {
+                    method: 'DELETE',
+                    headers: { 'Accept': 'application/json' }
+                }).then(function (r) {
+                    return r.json().then(function (d) { return { ok: r.ok, status: r.status, data: d }; });
+                }).then(function (res) {
+                    if (!res.ok) {
+                        alert(res.data.message || 'Failed to remove the value');
+                        return;
+                    }
+                    if (row) { row.remove(); }
+                    if (res.data.unpublishedCvs && res.data.unpublishedCvs.length > 0) {
+                        alert(unpublishedTemplate
+                            .replace('%position%', res.data.unpublishedCvs[0].positionTitle)
+                            .replace('%attribute%', attributeName));
+                    }
+                }).catch(function () {
+                    alert('Network error while removing the value');
+                });
+            });
+
+            // --- Projects tab: inline edit + autosave (debounced PATCH with
+            // optimistic-lock version; 409 shows reload / keep-mine actions) ---
+            const projectConflicts = {
+                title: {{ 'profile.project.conflict_title'|trans|json_encode|raw }},
+                body: {{ 'profile.project.conflict_body'|trans|json_encode|raw }},
+                reload: {{ 'profile.project.conflict_reload'|trans|json_encode|raw }},
+                keepMine: {{ 'profile.project.conflict_keep_mine'|trans|json_encode|raw }},
+                saved: {{ 'profile.autosave.saved'|trans|json_encode|raw }},
+                saving: {{ 'profile.autosave.saving'|trans|json_encode|raw }},
+                confirmDelete: {{ 'profile.project.confirm_delete'|trans|json_encode|raw }}
+            };
+
+            function projectPayload(row) {
+                return {
+                    name: row.querySelector('[data-field="name"]').value.trim(),
+                    startDate: row.querySelector('[data-field="startDate"]').value,
+                    endDate: row.querySelector('[data-field="endDate"]').value || null,
+                    descriptionMd: row.querySelector('[data-field="descriptionMd"]').value,
+                    tags: collectProjectTags(row),
+                    expectedVersion: parseInt(row.dataset.version || '1', 10)
+                };
+            }
+
+            function collectProjectTags(row) {
+                const input = row.querySelector('[data-field="tags"]');
+                if (input && input.tagify) {
+                    return input.tagify.value.map(function (t) { return t.value; });
+                }
+                return (input ? input.value : '').split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+            }
+
+            function setProjectState(row, text) {
+                const el = row.querySelector('[data-state]');
+                if (el) { el.textContent = text; }
+            }
+
+            function showProjectConflict(row, serverVersion) {
+                const container = document.getElementById('toast-container');
+                if (!container) { return; }
+                const toast = document.createElement('div');
+                toast.className = 'toast text-bg-danger';
+                toast.innerHTML =
+                    '<div class="toast-header"><strong class="me-auto">' + projectConflicts.title + '</strong>' +
+                    '<button type="button" class="btn-close" data-bs-dismiss="toast"></button></div>' +
+                    '<div class="toast-body">' + projectConflicts.body +
+                    '<div class="d-flex gap-2 mt-2">' +
+                    '<button type="button" class="btn btn-sm btn-light" data-action="reload">' + projectConflicts.reload + '</button>' +
+                    '<button type="button" class="btn btn-sm btn-light" data-action="keep">' + projectConflicts.keepMine + '</button>' +
+                    '</div></div>';
+                container.appendChild(toast);
+                toast.querySelector('[data-action="reload"]').addEventListener('click', function () { window.location.reload(); });
+                toast.querySelector('[data-action="keep"]').addEventListener('click', function () {
+                    row.dataset.version = String(serverVersion);
+                    new bootstrap.Toast(toast).hide();
+                    saveProject(row);
+                });
+                new bootstrap.Toast(toast).show();
+            }
+
+            function saveProject(row) {
+                if (row.dataset.saving === '1') { return; }
+                const id = row.dataset.projectId;
+                if (!id) { return; }
+                row.dataset.saving = '1';
+                setProjectState(row, projectConflicts.saving);
+
+                fetch('/api/projects/' + id, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify(projectPayload(row))
+                }).then(function (r) {
+                    return r.json().then(function (d) { return { ok: r.ok, status: r.status, data: d }; });
+                }).then(function (res) {
+                    row.dataset.saving = '0';
+                    if (res.ok) {
+                        row.dataset.version = String(res.data.version);
+                        setProjectState(row, projectConflicts.saved);
+                    } else if (res.status === 409) {
+                        setProjectState(row, projectConflicts.title);
+                        showProjectConflict(row, res.data.serverVersion);
+                    } else {
+                        setProjectState(row, projectConflicts.title);
+                        alert(res.data.message || res.data.error || 'Failed to save project');
+                    }
+                }).catch(function () {
+                    row.dataset.saving = '0';
+                    setProjectState(row, projectConflicts.title);
+                });
+            }
+
+            function initProjectRow(row) {
+                // Tagify: existing project tags (comma separated) + /api/tags autocomplete.
+                const tagsInput = row.querySelector('[data-field="tags"]');
+                if (tagsInput && window.Tagify) {
+                    const tagify = new Tagify(tagsInput, {
+                        dropdown: { enabled: 0, classname: 'tagify__dropdown' },
+                        callbacks: {
+                            input: function (e) {
+                                tagify.settings.whitelist = [];
+                                fetch('/api/tags?q=' + encodeURIComponent(e.detail.value || ''))
+                                    .then(function (r) { return r.json(); })
+                                    .then(function (tags) {
+                                        tagify.settings.whitelist = tags.map(function (t) { return t.name; });
+                                        tagify.dropdown.show.call(tagify, e.detail.value);
+                                    });
+                            }
+                        }
+                    });
+                    tagsInput.tagify = tagify;
+                }
+
+                // Debounced autosave: 600 ms after the last change.
+                let projectTimer = null;
+                row.addEventListener('input', function () {
+                    clearTimeout(projectTimer);
+                    projectTimer = setTimeout(function () { saveProject(row); }, 600);
+                });
+                row.addEventListener('change', function () {
+                    clearTimeout(projectTimer);
+                    projectTimer = setTimeout(function () { saveProject(row); }, 600);
+                });
+
+                const deleteBtn = row.querySelector('.project-delete');
+                if (deleteBtn) {
+                    deleteBtn.addEventListener('click', function () {
+                        if (!confirm(projectConflicts.confirmDelete)) { return; }
+                        fetch('/api/projects/' + row.dataset.projectId, { method: 'DELETE', headers: { 'Accept': 'application/json' } })
+                            .then(function (r) {
+                                if (r.ok || r.status === 204) { row.remove(); }
+                                else { return r.json().then(function (d) { throw new Error(d.message || 'Delete failed'); }); }
+                            })
+                            .catch(function (e) { alert(e.message || 'Delete failed'); });
+                    });
+                }
+            }
+
+            document.querySelectorAll('#project-list [data-project-row]').forEach(initProjectRow);
+
+            // Create: POST then append the fresh row inline (no full reload).
+            const projectCreateForm = document.getElementById('project-create');
+            if (projectCreateForm) {
+                projectCreateForm.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    const payload = {
+                        name: document.getElementById('project-name').value.trim(),
+                        startDate: document.getElementById('project-start').value,
+                        endDate: document.getElementById('project-end').value || null,
+                        descriptionMd: document.getElementById('project-desc').value,
+                        tags: []
+                    };
+                    const tagsInput = document.getElementById('project-tags');
+                    if (tagsInput && tagsInput.tagify) {
+                        payload.tags = tagsInput.tagify.value.map(function (t) { return t.value; });
+                    } else {
+                        payload.tags = (tagsInput ? tagsInput.value : '').split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+                    }
+
+                    fetch('/api/projects', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                        body: JSON.stringify(payload)
+                    }).then(function (r) {
+                        return r.json().then(function (d) { return { ok: r.ok, status: r.status, data: d }; });
+                    }).then(function (res) {
+                        if (!res.ok) { alert(res.data.message || res.data.error || 'Failed to create project'); return; }
+                        const row = document.createElement('div');
+                        row.className = 'list-group-item';
+                        row.dataset.projectRow = '';
+                        row.dataset.projectId = String(res.data.id);
+                        row.dataset.version = String(res.data.version);
+                        row.innerHTML =
+                            '<div class="row g-2">' +
+                            '<div class="col-md-6"><input class="form-control form-control-sm project-field" data-field="name" value="' + escapeAttr(res.data.name) + '"></div>' +
+                            '<div class="col-md-3"><input class="form-control form-control-sm project-field" type="date" data-field="startDate" value="' + escapeAttr(res.data.startDate) + '"></div>' +
+                            '<div class="col-md-3"><input class="form-control form-control-sm project-field" type="date" data-field="endDate" value="' + escapeAttr(res.data.endDate || '') + '"></div>' +
+                            '<div class="col-12"><textarea class="form-control form-control-sm project-field" rows="2" data-field="descriptionMd">' + escapeHtml(res.data.descriptionMd) + '</textarea></div>' +
+                            '<div class="col-12"><input class="form-control form-control-sm project-field project-tags" data-field="tags" value="' + escapeAttr((res.data.tags || []).join(', ')) + '"></div>' +
+                            '</div>' +
+                            '<div class="d-flex justify-content-between align-items-center mt-1">' +
+                            '<small class="text-muted project-state" data-state>' + projectConflicts.saved + '</small>' +
+                            '<button type="button" class="btn btn-sm btn-outline-danger project-delete"><i class="bi bi-trash"></i></button>' +
+                            '</div>';
+                        const list = document.getElementById('project-list');
+                        const empty = list.querySelector('p.text-muted');
+                        if (empty) { empty.remove(); }
+                        list.prepend(row);
+                        initProjectRow(row);
+                        projectCreateForm.reset();
+                        bootstrap.Collapse.getOrCreateInstance(document.getElementById('project-form')).hide();
+                    }).catch(function () { alert('Network error while creating project'); });
+                });
+            }
+
+            function escapeHtml(value) {
+                return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            }
+            function escapeAttr(value) {
+                return escapeHtml(value).replace(/"/g, '&quot;');
+            }
+        })();
+    </script>
+{% endblock %}

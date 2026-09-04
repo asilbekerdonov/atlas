@@ -1,0 +1,53 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Users{% endblock %}
+
+{% block body %}
+    <h1 class="h4">{{ 'admin.title'|trans }}</h1>
+
+    <div data-action-toolbar>
+        <div class="btn-toolbar mb-2 gap-2">
+            <button type="button" class="btn btn-outline-warning btn-sm" data-action="block" data-url-prefix="/admin/users/" disabled>
+                <i class="bi bi-person-slash"></i> {{ 'admin.block_unblock'|trans }}
+            </button>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle bg-body">
+                <thead class="table-light">
+                <tr><th style="width:2.5rem"></th><th>{{ 'admin.email'|trans }}</th><th>{{ 'admin.roles'|trans }}</th><th>{{ 'admin.blocked'|trans }}</th><th>{{ 'admin.created'|trans }}</th></tr>
+                </thead>
+                <tbody>
+                {% for user in users %}
+                    <tr data-row-id="{{ user.id }}">
+                        <td><input type="checkbox" class="form-check-input" aria-label="Select"></td>
+                        <td>{{ user.email }}</td>
+                        <td>{% for role in user.roles %}<span class="badge text-bg-secondary">{{ role }}</span> {% endfor %}</td>
+                        <td>{% if user.isBlocked %}<span class="badge text-bg-danger">{{ 'admin.blocked_badge'|trans }}</span>{% else %}<span class="badge text-bg-success">{{ 'admin.active'|trans }}</span>{% endif %}</td>
+                        <td>{{ user.createdAt|date('Y-m-d') }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        // "block" acts on the single selected row like edit does.
+        document.querySelectorAll('[data-action="block"]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                const row = document.querySelector('tr[data-row-id].selected');
+                if (row) {
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = '/admin/users/' + row.dataset.rowId + '/block';
+                    form.style.display = 'none';
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            });
+        });
+    </script>
+{% endblock %}
