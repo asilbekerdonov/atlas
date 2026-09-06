@@ -11,16 +11,42 @@ nav.theme.dark: Dark theme
 nav.theme.light: Light theme
 nav.language: Language
 
-home.title: CV Platform
-home.latest: Latest positions
-home.most_popular: Most popular positions
-home.tag_cloud: Tag cloud
-home.stats.cvs_24h: CVs in last 24h
-home.stats.positions: Positions
-home.stats.candidates: Candidates
-home.stats.recruiters: Recruiters
-home.stats.cvs: CVs submitted
-home.no_positions: No positions yet.
+home.title: 'Welcome to Atlas'
+home.no_positions: 'No positions yet.'
+
+home.hero.badge: 'The #1 hiring platform in Uzbekistan'
+home.hero.title: 'Find a job. Find employees.'
+home.hero.subtitle: 'CV Platform connects job seekers and employers across Uzbekistan — fast, transparent, free to start.'
+home.hero.cta_candidate: 'I am looking for a job'
+home.hero.cta_recruiter: 'I am looking to hire'
+home.hero.image_alt: 'CV Platform'
+
+home.stats.positions: 'Positions'
+home.stats.candidates: 'Candidates'
+home.stats.recruiters: 'Companies'
+home.stats.cvs: 'CVs submitted'
+
+home.audience.title: 'Who we help'
+home.audience.candidate_title: 'Job seekers'
+home.audience.candidate_text: 'Build a CV in 5 minutes, apply to positions in one click, and get notified about new openings in your field.'
+home.audience.recruiter_title: 'Employers'
+home.audience.recruiter_text: 'Post positions, filter candidates by skills and experience, and keep your CV database in one place.'
+
+home.testimonials.title: 'Trusted by'
+home.testimonials.user1.name: 'Umarov Alisher'
+home.testimonials.user1.role: 'Job seeker, Tashkent'
+home.testimonials.user1.quote: 'Found a job two days after signing up — applied and got a call back the same day. The platform is simple and easy to use.'
+home.testimonials.user2.name: 'Dilnoza Karimova'
+home.testimonials.user2.role: 'HR Manager, partner company'
+home.testimonials.user2.quote: 'Filled several positions in a month. Great to have all CVs and candidate statuses in one place.'
+home.testimonials.user3.name: 'Shukrona Tursunova'
+home.testimonials.user3.role: 'Job seeker, IT specialist'
+home.testimonials.user3.quote: 'Simple application flow, clear requirements — no need to rewrite my CV for every company.'
+
+home.tags.title: 'Popular skills'
+
+home.cta.title: 'Ready to start?'
+home.cta.button: 'Sign up for free'
 
 toolbar.create: Create
 toolbar.edit: Edit
@@ -36,6 +62,7 @@ table.date: Date
 table.position: Position
 table.candidate: Candidate
 table.empty: No rows to display.
+table.format: Format
 
 cv.publish: Publish CV
 cv.published: Published
@@ -142,3 +169,5 @@ admin.block_unblock: Block / Unblock
 
 position.cv_list: 'CVs — %title%'
 position.cv_count: CV(s)
+
+footer.copyright: '%year% Atlas Group of Companies'

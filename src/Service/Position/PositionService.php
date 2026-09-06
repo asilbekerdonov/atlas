@@ -16,14 +16,21 @@ use App\Entity\User;
 use App\Exception\OptimisticLockConflictException;
 use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
+use Psr\Cache\CacheItemPoolInterface;
 
 /**
  * Killer Feature #2: position (vacancy template) management.
+ *
+ * Mutations invalidate the cached home page (tag cloud, stats) — otherwise
+ * deleting a position would leave its tags visible in the cloud until the
+ * 120 s cache expired.
  */
 class PositionService
 {
-    public function __construct(private readonly EntityManagerInterface $em)
-    {
+    public function __construct(
+        private readonly EntityManagerInterface $em,
+        private readonly CacheItemPoolInterface $cache,
+    ) {
     }
 
     public function createPosition(PositionDTO $dto, User $author): Position
@@ -32,6 +39,7 @@ class PositionService
         $this->applyDto($position, $dto);
         $this->em->persist($position);
         $this->em->flush();
+        $this->invalidateHomeCache();
 
         return $position;
     }
@@ -72,6 +80,7 @@ class PositionService
 
         $this->em->persist($copy);
         $this->em->flush();
+        $this->invalidateHomeCache();
 
         return $copy;
     }
@@ -84,6 +93,7 @@ class PositionService
 
         $this->applyDto($position, $dto);
         $this->em->flush();
+        $this->invalidateHomeCache();
 
         return $position;
     }
@@ -93,6 +103,13 @@ class PositionService
         // Soft delete keeps already attached CVs intact.
         $position->softDelete();
         $this->em->flush();
+        $this->invalidateHomeCache();
+    }
+
+    /** The home page caches the tag cloud and stats — drop them on mutation. */
+    private function invalidateHomeCache(): void
+    {
+        $this->cache->deleteItems(['home.tag_cloud.v1', 'home.stats.v1']);
     }
 
     private function applyDto(Position $position, PositionDTO $dto): void

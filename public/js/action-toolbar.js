@@ -74,7 +74,10 @@
                 }
 
                 if (action === 'edit' || action === 'view' || action === 'block') {
-                    window.location = btn.dataset.urlPrefix + id + (action === 'block' ? '/block' : '');
+                    window.location = btn.dataset.urlPrefix + id + (
+                        action === 'block' ? '/block' :
+                        action === 'edit' ? '/edit' : ''
+                    );
                 } else if (action === 'apply') {
                     window.location = btn.dataset.urlPrefix + id + '/apply';
                 } else if (action === 'duplicate') {

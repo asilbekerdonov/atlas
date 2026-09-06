@@ -10,6 +10,7 @@ use App\Entity\CandidateProfile;
 use App\Entity\Cv;
 use App\Entity\Position;
 use App\Entity\PositionAccessRule;
+use App\Entity\Tag;
 use App\Entity\User;
 use App\Enum\AccessRuleOperator;
 use App\Entity\AttributeCategory;
@@ -108,6 +109,41 @@ final class PositionRepositoryTest extends KernelTestCase
 
         self::assertSame($busy->getId(), $top[0]->getId(), 'most CVs must rank first');
         self::assertContains($quiet->getId(), array_map(static fn (Position $p): int => $p->getId(), $top));
+    }
+
+    public function testTagCloudExcludesSoftDeletedPositions(): void
+    {
+        // One live position with a tag, one soft-deleted position with the
+        // same tag. The cloud must count the tag ONCE (live only) — the
+        // deleted position must not inflate the counter.
+        $tag = new Tag('Python');
+        $this->em->persist($tag);
+
+        $live = new Position('Live Python role', 'Desc');
+        $live->addTag($tag);
+        $this->em->persist($live);
+
+        $deleted = new Position('Removed Python role', 'Desc');
+        $deleted->addTag($tag);
+        $deleted->softDelete();
+        $this->em->persist($deleted);
+
+        $this->em->flush();
+
+        $cloud = $this->cloudCount('Python');
+
+        self::assertSame(1, $cloud, 'soft-deleted positions must not contribute their tags to the cloud');
+    }
+
+    private function cloudCount(string $tagName): int
+    {
+        foreach ($this->repository->findTagCloud(50) as $row) {
+            if ($row['name'] === $tagName) {
+                return (int) $row['count'];
+            }
+        }
+
+        return 0;
     }
 
     private function cvCandidate(): User

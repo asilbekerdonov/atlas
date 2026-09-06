@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.1em%22 font-size=%2296%22>💼</text></svg>">
-    <title>{% block title %}CV Platform{% endblock %}</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%232F5D50'/><text x='32' y='44' font-family='Georgia,serif' font-size='38' font-weight='700' fill='%23F7F6F3' text-anchor='middle'>A</text></svg>">
+    <title>{% block title %}ATLAS{% endblock %}</title>
 
     {# Theme applied before render to avoid a flash of the wrong theme. #}
     <script>
@@ -27,7 +27,7 @@
 <nav class="navbar navbar-expand-lg fixed-top bg-dark navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand fw-bold" href="{{ path('app_home') }}">
-            <i class="bi bi-file-earmark-person-fill"></i> CV Platform
+            <i class="bi bi-file-earmark-person-fill"></i>ATLAS
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
             <span class="navbar-toggler-icon"></span>
@@ -93,7 +93,7 @@
     </div>
 </nav>
 
-<main class="container py-4">
+<main class="container py-4" style="padding-top: 0.5rem !important;">
     {% for label, messages in app.flashes %}
         {% for message in messages %}
             <div class="alert alert-{{ label == 'error' ? 'danger' : label }} alert-dismissible fade show" role="alert">
@@ -106,7 +106,9 @@
 </main>
 
 <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toast-container"></div>
-
+<footer class="border-top py-4 mt-5 text-center text-secondary small">
+        &copy; {{ 'footer.copyright'|trans({'%year%': "now"|date("Y")}) }}
+</footer>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify@4.20.0/dist/tagify.min.js"></script>
 <script src="{{ asset('js/theme-switcher.js') }}"></script>

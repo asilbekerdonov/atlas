@@ -1,0 +1,173 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'home.title'|trans }}{% endblock %}
+
+{% block body %}
+
+{# ==========================================================================
+   1. HERO
+   ========================================================================== #}
+{# ==========================================================================
+   1. HERO — full-bleed фон, текст поверх с затемнением
+   ========================================================================== #}
+<section class="position-relative rounded-4 overflow-hidden mb-5"
+          style="min-height: 480px; background-image: url('{{ asset('images/w.jpg') }}');
+                 background-size: cover; background-position: center;">
+
+    {# затемнение поверх фото для читаемости текста #}
+    <div class="position-absolute top-0 start-0 w-100 h-100"
+         style="background: linear-gradient(90deg, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.35) 55%, rgba(0,0,0,0.10) 100%);">
+    </div>
+
+    <div class="position-relative p-4 p-lg-5 d-flex flex-column justify-content-center"
+         style="min-height: 480px; max-width: 640px;">
+       
+        <h1 class="display-5 fw-bold mb-3 text-white">
+            {{ 'home.title'|trans|default('Находите работу. Находите сотрудников.') }}
+        </h1>
+        <p class="fs-5 mb-4" style="color: rgba(255,255,255,0.85);">
+            {{ 'home.subtitle'|trans|default('CV Platform соединяет соискателей и работодателей по всему Узбекистану — быстро, прозрачно, бесплатно для старта.') }}
+        </p>
+      
+    </div>
+</section>
+
+{# ==========================================================================
+   2. LIVE STATS
+   ========================================================================== #}
+<section class="mb-5">
+    <div class="row g-3">
+        <div class="col-6 col-md-3">
+            <div class="card card-stats text-center p-3">
+                <div class="stat-number">{{ stats.positions ?? 0 }}</div>
+                <div class="stat-label">{{ 'home.stats.positions'|trans|default('Вакансий') }}</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card card-stats text-center p-3">
+                <div class="stat-number">{{ stats.candidates ?? 0 }}</div>
+                <div class="stat-label">{{ 'home.stats.candidates'|trans|default('Соискателей') }}</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card card-stats text-center p-3">
+                <div class="stat-number">{{ stats.recruiters ?? 0 }}</div>
+                <div class="stat-label">{{ 'home.stats.recruiters'|trans|default('Компаний') }}</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card card-stats text-center p-3">
+                <div class="stat-number">{{ stats.cvsSubmitted ?? 0 }}</div>
+                <div class="stat-label">{{ 'home.stats.cvs'|trans|default('Резюме отправлено') }}</div>
+            </div>
+        </div>
+    </div>
+    {# Сверь реальные ключи stats — они зависят от PositionRepository::getStats() #}
+</section>
+
+{# ==========================================================================
+   3. ДЛЯ КОГО ПЛАТФОРМА
+   ========================================================================== #}
+<section class="mb-5">
+    <h2 class="section-title mb-4">
+        <i class="bi bi-people"></i> {{ 'home.audience.title'|trans|default('Для кого мы') }}
+    </h2>
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="card h-100 p-4">
+                <i class="bi bi-person-badge fs-2 text-primary mb-2"></i>
+                <h5>{{ 'home.audience.candidate_title'|trans|default('Соискателям') }}</h5>
+                <p class="text-secondary mb-0">
+                    {{ 'home.audience.candidate_text'|trans|default('Создайте резюме за 5 минут, откликайтесь на вакансии в один клик и получайте уведомления о новых предложениях в вашей сфере.') }}
+                </p>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card h-100 p-4">
+                <i class="bi bi-briefcase fs-2 text-primary mb-2"></i>
+                <h5>{{ 'home.audience.recruiter_title'|trans|default('Работодателям') }}</h5>
+                <p class="text-secondary mb-0">
+                    {{ 'home.audience.recruiter_text'|trans|default('Публикуйте вакансии, фильтруйте кандидатов по навыкам и опыту, ведите базу CV в одном месте.') }}
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+{# ==========================================================================
+   4. ОТЗЫВЫ (3 карточки, круглая заглушка — фото вставишь сам)
+   ========================================================================== #}
+<section class="mb-5">
+    <h2 class="section-title mb-4">
+        <i class="bi bi-chat-quote"></i> {{ 'home.testimonials.title'|trans|default('Нам доверяют') }}
+    </h2>
+    <div class="row g-4">
+    
+    
+   {% set testimonials = [
+    { key: 'user1', avatar: 'images/workers/w1.jpg', rating: 5 },
+    { key: 'user2', avatar: 'images/workers/w2.jpg', rating: 4.5 },
+    { key: 'user3', avatar: 'images/workers/w3.jpg', rating: 5 }
+] %}
+
+{% for t in testimonials %}
+    <div class="col-md-4">
+        <div class="card h-100 p-4">
+            <img src="{{ asset(t.avatar) }}" alt="{{ ('home.testimonials.' ~ t.key ~ '.name')|trans }}"
+                 class="rounded-circle mb-3" width="64" height="64" style="object-fit: cover;">
+
+      <div class="mb-2" aria-label="{{ t.rating }} out of 5 stars">
+            {% set fullStars = t.rating|round(0, 'floor') %}
+            {% set hasHalf = (t.rating - fullStars) >= 0.5 %}
+            {% set emptyStars = 5 - fullStars - (hasHalf ? 1 : 0) %}
+
+            {% if fullStars > 0 %}
+                {% for i in 1..fullStars %}
+                    <i class="bi bi-star-fill" style="color: var(--bs-warning);"></i>
+                {% endfor %}
+            {% endif %}
+
+            {% if hasHalf %}
+                <i class="bi bi-star-half" style="color: var(--bs-warning);"></i>
+            {% endif %}
+
+            {% if emptyStars > 0 %}
+                {% for i in 1..emptyStars %}
+                    <i class="bi bi-star" style="color: var(--bs-warning);"></i>
+                {% endfor %}
+            {% endif %}
+
+            <div class="fw-semibold">{{ ('home.testimonials.' ~ t.key ~ '.name')|trans }}</div>
+            
+        </div>
+                
+ 
+
+            <p class="mb-3">{{ ('home.testimonials.' ~ t.key ~ '.quote')|trans }}</p>
+            
+            <div class="mt-auto">
+                <div class="text-secondary small">{{ ('home.testimonials.' ~ t.key ~ '.role')|trans }}</div>
+            </div>
+        </div>
+    </div>
+{% endfor %}
+    </div>
+</section>
+
+{# ==========================================================================
+   5. ПОПУЛЯРНЫЕ НАВЫКИ / ТЕГИ
+   ========================================================================== #}
+
+
+{# ==========================================================================
+   6. РАБОТА ПО ГОРОДАМ — ЗАГЛУШКА, ЗАПОЛНИМ ПОЗЖЕ
+   ========================================================================== #}
+
+<section class="mb-5">
+    <h2 class="section-title mb-4">Работа по Ташкенту</h2>
+    ...
+</section>
+
+
+
+{% endblock %}

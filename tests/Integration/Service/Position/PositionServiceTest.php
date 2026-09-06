@@ -21,6 +21,7 @@ use App\Exception\OptimisticLockConflictException;
 use App\Service\Position\PositionService;
 use App\Tests\Integration\Service\AbstractServiceIntegrationTestCase;
 use DateTimeImmutable;
+use Psr\Cache\CacheItemPoolInterface;
 
 final class PositionServiceTest extends AbstractServiceIntegrationTestCase
 {
@@ -141,6 +142,23 @@ final class PositionServiceTest extends AbstractServiceIntegrationTestCase
         self::assertNotNull($position->getDeletedAt());
         self::assertTrue($position->isDeleted());
         self::assertLessThanOrEqual(new DateTimeImmutable(), $position->getDeletedAt());
+    }
+
+    public function testSoftDeletePositionInvalidatesHomeTagCloudCache(): void
+    {
+        // The home page caches the tag cloud for 120 s. Deleting a position
+        // must drop that cache, otherwise the removed tags stay visible
+        // until expiry.
+        $cache = self::getContainer()->get(CacheItemPoolInterface::class);
+        $cache->deleteItem('home.tag_cloud.v1');
+
+        $position = $this->service->createPosition(new PositionDTO('Cached role', 'Desc'), $this->author);
+        $cache->get('home.tag_cloud.v1', fn () => ['Python' => 5]);
+        self::assertTrue($cache->hasItem('home.tag_cloud.v1'), 'precondition: cache is populated');
+
+        $this->service->softDeletePosition($position);
+
+        self::assertFalse($cache->hasItem('home.tag_cloud.v1'), 'deleting a position must invalidate the tag cloud cache');
     }
 
     private function persistAttribute(string $name, AttributeDataType $dataType): Attribute

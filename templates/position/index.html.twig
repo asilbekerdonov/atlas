@@ -13,7 +13,7 @@
                 <button type="button" class="btn btn-primary btn-sm" data-action="create" data-url="{{ path('position_new') }}">
                     <i class="bi bi-plus-lg"></i> {{ 'toolbar.create'|trans }}
                 </button>
-                <button type="button" class="btn btn-outline-secondary btn-sm" data-action="edit" data-url-prefix="{{ path('position_edit', {id: 0})|replace({'/0': ''}) }}" disabled>
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-action="edit" data-url-prefix="/positions/" disabled>
                     <i class="bi bi-pencil"></i> {{ 'toolbar.edit'|trans }}
                 </button>
                 <button type="button" class="btn btn-outline-secondary btn-sm" data-action="duplicate" data-url-prefix="/positions/" disabled>

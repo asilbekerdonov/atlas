@@ -15,6 +15,7 @@ use DateTimeImmutable;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
+use Psr\Cache\CacheItemPoolInterface;
 use RuntimeException;
 
 /**
@@ -27,8 +28,10 @@ use RuntimeException;
  */
 class ProjectService
 {
-    public function __construct(private readonly EntityManagerInterface $em)
-    {
+    public function __construct(
+        private readonly EntityManagerInterface $em,
+        private readonly CacheItemPoolInterface $cache,
+    ) {
     }
 
     /**
@@ -71,6 +74,7 @@ class ProjectService
 
         $this->em->persist($project);
         $this->em->flush();
+        $this->invalidateHomeCache();
 
         return $this->toView($project);
     }
@@ -91,6 +95,7 @@ class ProjectService
         $this->applyTags($project, $dto->tags);
 
         $this->em->flush();
+        $this->invalidateHomeCache();
 
         return $this->toView($project);
     }
@@ -99,6 +104,13 @@ class ProjectService
     {
         $this->em->remove($project);
         $this->em->flush();
+        $this->invalidateHomeCache();
+    }
+
+    /** Projects feed the home tag cloud — drop the cached copy on mutation. */
+    private function invalidateHomeCache(): void
+    {
+        $this->cache->deleteItems(['home.tag_cloud.v1', 'home.stats.v1']);
     }
 
     private function toView(Project $project): ProjectViewDTO

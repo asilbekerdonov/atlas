@@ -11,17 +11,53 @@ nav.theme.dark: Тёмная тема
 nav.theme.light: Светлая тема
 nav.language: Язык
 
-home.title: CV Платформа
-home.latest: Последние вакансии
-home.most_popular: Самые популярные вакансии
-home.tag_cloud: Облако тегов
-home.stats.cvs_24h: CV за 24 часа
-home.stats.positions: Вакансий
-home.stats.candidates: Кандидатов
-home.stats.recruiters: Рекрутеров
-home.stats.cvs: Подано CV
-home.no_positions: Вакансий пока нет.
+# --- Общие / дашборд ---
+home.title: 'Добро пожаловать в ATLAS'
+home.latest: 'Последние вакансии'
+home.most_popular: 'Самые популярные вакансии'
+home.tag_cloud: 'Облако тегов'
+home.no_positions: 'Вакансий пока нет.'
+home.subtitle: 'CV Platform соединяет соискателей и работодателей по всему Узбекистану — быстро, прозрачно, бесплатно для старта.'
 
+home.stats.cvs_24h: 'CV за 24 часа'
+home.stats.positions: 'Вакансий'
+home.stats.candidates: 'Кандидатов'
+home.stats.recruiters: 'Рекрутеров'
+home.stats.cvs: 'Подано CV'
+
+# --- Hero (гостевой лендинг) ---
+home.hero.badge: 'Платформа №1 для найма в Узбекистане'
+home.hero.title: 'Находите работу. Находите сотрудников.'
+home.hero.subtitle: 'CV Platform соединяет соискателей и работодателей по всему Узбекистану — быстро, прозрачно, бесплатно для старта.'
+home.hero.cta_candidate: 'Я ищу работу'
+home.hero.cta_recruiter: 'Я ищу сотрудника'
+home.hero.image_alt: 'CV Platform'
+
+# --- Для кого платформа ---
+home.audience.title: 'Для кого мы'
+home.audience.candidate_title: 'Соискателям'
+home.audience.candidate_text: 'Создайте резюме за 5 минут, откликайтесь на вакансии в один клик и получайте уведомления о новых предложениях в вашей сфере.'
+home.audience.recruiter_title: 'Работодателям'
+home.audience.recruiter_text: 'Публикуйте вакансии, фильтруйте кандидатов по навыкам и опыту, ведите базу CV в одном месте.'
+
+# --- Отзывы ---
+home.testimonials.title: 'Нам доверяют'
+home.testimonials.user1.name: 'Умаров Алишер'
+home.testimonials.user1.role: 'Соискатель, Ташкент'
+home.testimonials.user1.quote: 'Нашёл работу через два дня после регистрации — откликнулся на вакансию и в тот же день мне перезвонили. Платформой просто и удобно пользоваться.'
+home.testimonials.user2.name: 'Дилноза Каримова'
+home.testimonials.user2.role: 'HR-менеджер, компания-партнёр'
+home.testimonials.user2.quote: 'Закрыла несколько позиций за месяц. Удобно, что все резюме и статусы кандидатов в одном месте.'
+home.testimonials.user3.name: 'Шукрона Турсунова'
+home.testimonials.user3.role: 'Соискатель, IT-специалист'
+home.testimonials.user3.quote: 'Простой отклик, понятные требования к вакансии — не пришлось переписывать резюме под каждую компанию.'
+
+# --- Теги ---
+home.tags.title: 'Популярные навыки'
+
+# --- Финальный CTA ---
+home.cta.title: 'Готовы начать?'
+home.cta.button: 'Зарегистрироваться бесплатно'
 toolbar.create: Создать
 toolbar.edit: Изменить
 toolbar.duplicate: Дублировать
@@ -36,6 +72,7 @@ table.date: Дата
 table.position: Вакансия
 table.candidate: Кандидат
 table.empty: Нет данных для отображения.
+table.format: Формат
 
 cv.publish: Опубликовать CV
 cv.published: Опубликовано
@@ -142,3 +179,5 @@ admin.block_unblock: Блокировать / Разблокировать
 
 position.cv_list: 'CV — %title%'
 position.cv_count: CV
+
+footer.copyright: '%year% Группа компаний Atlas'
