@@ -54,6 +54,7 @@ class PositionService
         $copy->setCompanyName($sourcePosition->getCompanyName());
         $copy->setLevel($sourcePosition->getLevel());
         $copy->setPublic($sourcePosition->isPublic());
+        $copy->setFormat($sourcePosition->getFormat());
         $copy->setMaxProjects($sourcePosition->getMaxProjects());
 
         foreach ($sourcePosition->getTemplateAttributes() as $templateAttribute) {
@@ -120,6 +121,7 @@ class PositionService
         $position->setLevel($dto->level);
         $position->setPublic($dto->isPublic);
         $position->setMaxProjects($dto->maxProjects);
+        $position->setFormat($dto->format);
 
         // Replace the template (orphanRemoval drops removed rows).
         $position->getTemplateAttributes()->clear();
