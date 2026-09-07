@@ -20,7 +20,8 @@ final readonly class AttributeDTO
         public string $name,
         public int $categoryId,
         public string $categoryName,
-        public AttributeDataType $dataType,
+        public AttributeDataType $dataType, 
+        public ?string $format = null,
         public ?string $description = null,
         public array $options = [],
     ) {

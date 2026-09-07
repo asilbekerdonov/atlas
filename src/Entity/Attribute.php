@@ -118,7 +118,7 @@ class Attribute
     {
         return $this->isBuiltIn;
     }
-
+    
     public function isActive(): bool
     {
         return $this->isActive;

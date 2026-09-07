@@ -31,6 +31,9 @@ final class AttributeRequestDTO
         #[Assert\Choice(choices: [AttributeDataType::STRING->value, AttributeDataType::TEXT->value, AttributeDataType::IMAGE->value, AttributeDataType::NUMERIC->value, AttributeDataType::DATE->value, AttributeDataType::PERIOD->value, AttributeDataType::BOOLEAN->value, AttributeDataType::ONE_OF_MANY->value])]
         public string $dataType = '',
 
+        #[Assert\Length(max: 40)]
+        public ?string $format = null,
+        
         #[Assert\Length(max: 1000)]
         public ?string $description = null,
 

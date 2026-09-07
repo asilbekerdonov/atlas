@@ -9,7 +9,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-
+use App\Enum\Format;
 /**
  * A job position recruiters publish; candidates attach a CV to it.
  *
@@ -54,6 +54,8 @@ class Position
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     private ?DateTimeImmutable $deletedAt = null;
 
+    #[ORM\Column(type: 'string', enumType: Format::class, nullable: true)]
+    private ?Format $format = null; 
     #[ORM\Version]
     #[ORM\Column(type: Types::INTEGER)]
     private int $version = 1;
@@ -245,5 +247,15 @@ class Position
     public function removeTag(Tag $tag): void
     {
         $this->tags->removeElement($tag);
+    }
+      public function getFormat(): ?Format
+    {
+        return $this->format;
+    }
+
+    public function setFormat(?Format $format): self
+    {
+        $this->format = $format;
+        return $this;
     }
 }

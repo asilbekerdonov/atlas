@@ -23,6 +23,8 @@ final class PositionRequestDTO
         #[Assert\Length(max: 5000)]
         public string $shortDescription = '',
 
+        public ?string $format = null,
+        
         #[Assert\Length(max: 255)]
         public ?string $companyName = null,
 

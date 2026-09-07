@@ -26,7 +26,7 @@ use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
-
+use App\Enum\Format;
 /**
  * Demo data following the exam scenario: Acme Corp, Anna, CAP,
  * Junior Data Engineer. Load with:
@@ -73,12 +73,8 @@ final class AppFixtures extends Fixture implements DependentFixtureInterface
         $sql = $this->tag($em, 'SQL');
         $r = $this->tag($em, 'R');
         $pythonTag = $this->tag($em, 'Python');
-        $airflow = $this->tag($em, 'Airflow');
-        $statistics = $this->tag($em, 'Statistics');
-        $php = $this->tag($em, 'PHP');
-        $css = $this->tag($em, 'CSS');
-        $ml = $this->tag($em, 'Machine Learning');
-        $pytorch = $this->tag($em, 'PyTorch');
+ 
+
 
         // ------------------------------------------------------------------ Position 1: Junior Data Engineer @ Acme Corp (key scenario)
         $jde = new Position('Junior Data Engineer @ Acme Corp', 'Join the Acme Corp data team: build and maintain data pipelines, reports and analytics tooling.');
@@ -86,6 +82,7 @@ final class AppFixtures extends Fixture implements DependentFixtureInterface
         $jde->setLevel('Junior');
         $jde->setPublic(false);
         $jde->setMaxProjects(4);
+        $jde->setFormat(Format::Hybrid);
         foreach ([$sql, $r, $pythonTag] as $tag) {
             $jde->addTag($tag);
         }
@@ -110,6 +107,7 @@ final class AppFixtures extends Fixture implements DependentFixtureInterface
         $sds = new Position('Senior Data Scientist @ AI Labs', 'Advanced ML modeling and productionization with PyTorch.');
         $sds->setCompanyName('AI Labs');
         $sds->setLevel('Senior');
+        $sds->setFormat(Format::Remote);
         $sds->setPublic(true);
         foreach ([$pythonTag, $ml, $pytorch] as $tag) {
             $sds->addTag($tag);
