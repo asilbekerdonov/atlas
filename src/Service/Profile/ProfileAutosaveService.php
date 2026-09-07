@@ -50,8 +50,12 @@ class ProfileAutosaveService
         if ($dto->lastName !== null) {
             $profile->setLastName($dto->lastName);
         }
-        $profile->setLocation($dto->location);
-        $profile->setAvatarUrl($dto->avatarUrl);
+        if ($dto->location !== null) {
+            $profile->setLocation($dto->location);
+        }
+        if ($dto->avatarUrl !== null) {
+            $profile->setAvatarUrl($dto->avatarUrl);
+        }
 
         foreach ($dto->attributeValues as $attributeValueDto) {
             $attribute = $this->em->find(Attribute::class, $attributeValueDto->attributeId);

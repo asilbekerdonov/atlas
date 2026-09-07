@@ -103,6 +103,7 @@ final class CandidateProfileController extends AbstractController
         ProfileAutosaveService $autosaveService,
         #[Autowire(service: 'limiter.profile_autosave')] RateLimiterFactory $autosaveLimiter,
     ): JsonResponse {
+        
         $limiter = $autosaveLimiter->create($this->getUser()->getUserIdentifier())->consume(1);
         if (!$limiter->isAccepted()) {
             throw new TooManyRequestsHttpException((int) $limiter->getRetryAfter()->getTimestamp() - time());
@@ -125,7 +126,6 @@ final class CandidateProfileController extends AbstractController
             if (!$profile instanceof CandidateProfile) {
                 throw $e;
             }
-
             return new JsonResponse([
                 'error' => 'conflict',
                 'serverVersion' => $e->getCurrentVersion(),

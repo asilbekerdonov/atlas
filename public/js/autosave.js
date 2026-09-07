@@ -86,12 +86,16 @@
         }
 
         function save() {
+            if (timer) {
+                clearTimeout(timer);
+                timer = null;
+            }
             if (inFlight) {
-                return;
+                return Promise.resolve();
             }
             inFlight = true;
             setBadge('saving');
-            fetch('/api/profile/autosave', {
+            return fetch('/api/profile/autosave', {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(collect())
@@ -113,13 +117,22 @@
                 } else {
                     setBadge('saved');
                 }
-            }).catch(function () {
+                return result;
+            }).catch(function (err) {
                 inFlight = false;
                 setBadge('saved');
+                throw err;
             });
         }
 
+        form.__autosave = {
+            save: save,
+            scheduleSave: scheduleSave,
+            collect: collect
+        };
+
         form.addEventListener('input', scheduleSave);
         form.addEventListener('change', scheduleSave);
+        form.addEventListener('autosave:save', save);
     });
 })();
