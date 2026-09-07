@@ -1,0 +1,25 @@
+/* ==========================================================================
+   15. Section titles
+   ========================================================================== */
+.section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--bs-body-color);
+    margin-bottom: 1.2rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 3px solid var(--bs-primary);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.section-title i {
+    color: var(--bs-primary);
+}
+
+[data-bs-theme="dark"] .section-title {
+    color: #E6EDEA;
+}
+[data-bs-theme="dark"] .section-title i {
+    color: #4CAF94;
+}

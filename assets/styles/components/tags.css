@@ -1,0 +1,81 @@
+/* ==========================================================================
+   9. Tag cloud
+   ========================================================================== */
+.tag-cloud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.tag-cloud a.tag-pill,
+.tag-cloud a.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.35rem 0.8rem;
+    border-radius: var(--bs-border-radius-pill);
+    font-weight: 500;
+    text-decoration: none;
+    line-height: 1.3;
+    transition: all 0.15s ease-in-out;
+    background-color: rgba(47, 93, 80, 0.08);
+    color: #2F5D50;
+    border: 1px solid rgba(47, 93, 80, 0.20);
+}
+
+.tag-cloud a.tag-pill:hover,
+.tag-cloud a.badge:hover {
+    background-color: #2F5D50;
+    color: #FFFFFF !important;
+    border-color: #2F5D50;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(47, 93, 80, 0.25);
+}
+
+[data-bs-theme="dark"] .tag-cloud a.tag-pill,
+[data-bs-theme="dark"] .tag-cloud a.badge {
+    background-color: rgba(76, 175, 148, 0.14);
+    color: #6FCBB0;
+    border: 1px solid rgba(76, 175, 148, 0.28);
+}
+
+[data-bs-theme="dark"] .tag-cloud a.tag-pill:hover,
+[data-bs-theme="dark"] .tag-cloud a.badge:hover {
+    background-color: #4CAF94;
+    color: #08120F !important;
+    border-color: #4CAF94;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(76, 175, 148, 0.35);
+}
+
+/* ==========================================================================
+   14. Tag badges
+   ========================================================================== */
+.tag-badge {
+    background: rgba(var(--bs-primary-rgb), 0.08) !important;
+    color: var(--bs-primary) !important;
+    border: 1px solid rgba(var(--bs-primary-rgb), 0.15);
+    padding: 0.3rem 0.7rem;
+    font-weight: 500;
+    font-size: 0.75rem;
+    margin-right: 0.3rem;
+    border-radius: 20px;
+    transition: all 0.15s ease;
+}
+
+[data-bs-theme="dark"] .tag-badge {
+    background: rgba(76, 175, 148, 0.14) !important;
+    color: #6FCBB0 !important;
+    border-color: rgba(76, 175, 148, 0.28) !important;
+}
+
+.tag-badge:hover {
+    background: var(--bs-primary) !important;
+    color: #FFFFFF !important;
+    transform: scale(1.02);
+}
+
+[data-bs-theme="dark"] .tag-badge:hover {
+    background: #4CAF94 !important;
+    color: #08120F !important;
+}

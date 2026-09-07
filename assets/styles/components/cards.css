@@ -1,0 +1,74 @@
+/* ==========================================================================
+   4. Cards
+   ========================================================================== */
+.card {
+    border-radius: var(--bs-border-radius-lg);
+    border: 1px solid var(--bs-border-color);
+}
+
+:root .card {
+    background: #FFFFFF;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+[data-bs-theme="dark"] .card {
+    background: #161D1B;
+    border-color: rgba(255, 255, 255, 0.10);
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.45);
+}
+
+[data-bs-theme="dark"] .card .text-muted {
+    color: #8FA79E !important;
+}
+
+.modal-content {
+    border-radius: var(--bs-border-radius-lg);
+}
+
+[data-bs-theme="dark"] .modal-content {
+    background: #161D1B;
+    border-color: rgba(255, 255, 255, 0.10);
+}
+
+/* ==========================================================================
+   5. Card stats
+   ========================================================================== */
+.card-stats {
+    border-radius: var(--bs-border-radius-lg);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    border: 1px solid var(--bs-border-color);
+}
+
+.card-stats:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(47, 93, 80, 0.10);
+}
+
+[data-bs-theme="dark"] .card-stats {
+    background: #161D1B !important;
+    border-color: rgba(255, 255, 255, 0.10) !important;
+}
+
+[data-bs-theme="dark"] .card-stats:hover {
+    border-color: rgba(76, 175, 148, 0.40) !important;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.55);
+}
+
+.card-stats .stat-number {
+    font-size: 2.2rem;
+    font-weight: 700;
+    line-height: 1.2;
+    /* color: var(--bs-primary); */
+}
+
+[data-bs-theme="dark"] .card-stats .stat-number {
+    color: #4CAF94;
+}
+
+.card-stats .stat-label {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--bs-secondary-color);
+    font-weight: 500;
+}

@@ -1,0 +1,52 @@
+/* ==========================================================================
+   11. Icons
+   ========================================================================== */
+.bi-trash { color: var(--bs-danger); }
+.bi-pencil { color: var(--bs-warning); }
+.bi-files { color: var(--bs-secondary-color); }
+.bi-eye { color: var(--bs-primary); }
+.bi-person-slash { color: var(--bs-warning); }
+
+.btn-success .bi,
+.btn-primary .bi,
+.btn-danger .bi {
+    color: inherit;
+}
+
+.btn:has(> .bi-trash) {
+    --bs-btn-hover-bg: rgba(var(--bs-danger-rgb), 0.10);
+    --bs-btn-hover-color: var(--bs-danger);
+    --bs-btn-hover-border-color: var(--bs-danger);
+    --bs-btn-active-bg: rgba(var(--bs-danger-rgb), 0.18);
+    --bs-btn-active-color: var(--bs-danger);
+    --bs-btn-active-border-color: var(--bs-danger);
+}
+.btn:has(> .bi-pencil) {
+    --bs-btn-hover-bg: rgba(var(--bs-warning-rgb), 0.10);
+    --bs-btn-hover-color: var(--bs-warning);
+    --bs-btn-hover-border-color: var(--bs-warning);
+    --bs-btn-active-bg: rgba(var(--bs-warning-rgb), 0.18);
+    --bs-btn-active-color: var(--bs-warning);
+    --bs-btn-active-border-color: var(--bs-warning);
+}
+.btn:has(> .bi-files) {
+    --bs-btn-hover-bg: rgba(var(--bs-secondary-color-rgb), 0.12);
+    --bs-btn-hover-color: var(--bs-secondary-color);
+    --bs-btn-hover-border-color: var(--bs-secondary-color);
+}
+.btn:has(> .bi-eye) {
+    --bs-btn-hover-bg: rgba(var(--bs-primary-rgb), 0.10);
+    --bs-btn-hover-color: var(--bs-primary);
+    --bs-btn-hover-border-color: var(--bs-primary);
+}
+.btn:has(> .bi-person-slash) {
+    --bs-btn-hover-bg: rgba(var(--bs-warning-rgb), 0.10);
+    --bs-btn-hover-color: var(--bs-warning);
+    --bs-btn-hover-border-color: var(--bs-warning);
+}
+
+[data-bs-theme="dark"] .btn:has(> .bi-eye) {
+    --bs-btn-hover-bg: rgba(76, 175, 148, 0.15);
+    --bs-btn-hover-color: #4CAF94;
+    --bs-btn-hover-border-color: #4CAF94;
+}

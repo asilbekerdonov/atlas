@@ -1,0 +1,23 @@
+/* ==========================================================================
+   16. Legacy rules
+   TODO: кандидаты на рефакторинг/удаление
+   ========================================================================== */
+body { padding-top: 4.5rem; }
+.markdown-body img { max-width: 100%; }
+.row-checkbox { cursor: pointer; }
+.row-checkbox.selected { background-color: var(--bs-tertiary-bg); }
+.cv-empty {
+    border: 2px solid var(--bs-danger);
+    background-color: rgba(var(--bs-danger-rgb), 0.10);
+    border-radius: 0.375rem;
+    padding: 0.375rem 0.5rem;
+    color: var(--bs-danger);
+}
+.inplace-edit { cursor: pointer; border-bottom: 1px dashed var(--bs-secondary); }
+.autosave-badge { position: fixed; right: 1rem; bottom: 1rem; z-index: 1080; }
+
+[data-bs-theme="dark"] .cv-empty {
+    border-color: #F2726C;
+    background-color: rgba(242, 114, 108, 0.10);
+    color: #F2726C;
+}
