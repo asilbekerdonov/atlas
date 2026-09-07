@@ -1,0 +1,125 @@
+/* ==========================================================================
+   Avatar upload zone (profile page)
+   FIX: was min-height:220px with width:100% -> arbitrary wide rectangle
+   that didn't match the square avatar output, so the cropped square photo
+   got stretched/cropped again by object-fit: cover.
+   Now the box itself is a square, capped so it doesn't get huge on desktop.
+   ========================================================================== */
+.avatar-upload-zone {
+    width: 100%;
+    max-width: 320px;
+    aspect-ratio: 1 / 1;
+    border: 2px dashed var(--bs-border-color);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    color: var(--bs-secondary-color);
+    cursor: pointer;
+    overflow: hidden;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.avatar-upload-zone:hover {
+    border-color: var(--bs-primary);
+    background-color: rgba(var(--bs-primary-rgb), 0.04);
+}
+
+.avatar-upload-zone.avatar-readonly {
+    cursor: default;
+    border-style: solid;
+}
+
+.avatar-upload-zone.border-primary {
+    border-color: var(--bs-primary) !important;
+}
+
+.avatar-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+[data-bs-theme="dark"] .avatar-upload-zone {
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* ==========================================================================
+   Avatar Editor Modal (native)
+   FIX: hardcoded #f8f9fa / #2d2d2d swapped for theme variables so the
+   editor follows day/night mode like the rest of the app. Crop area kept
+   comfortably sized inside a wider (modal-lg) dialog — see markup note.
+
+   Layout: .avatar-editor-wrapper > .avatar-editor-stage
+   The stage holds ONLY the <canvas> with the photo and a static CSS mask
+   (.avatar-crop-mask) that darkens everything outside the circle. Because
+   the mask is a separate layer it is never repainted while dragging.
+   ========================================================================== */
+.avatar-editor-wrapper {
+    width: 100%;
+    max-width: 440px;
+    margin: 0 auto;
+    background: var(--bs-tertiary-bg);
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.avatar-editor-stage {
+    position: relative;
+    width: 100%;
+    max-width: 340px;
+    margin: 0 auto;
+    aspect-ratio: 1 / 1;
+    border-radius: 12px;
+    overflow: hidden; /* обрезает тень вуали по границам стадии */
+    touch-action: none; /* let pointer events drive pan/pinch, not scrolling */
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* Photo layer: repainted with a single drawImage() per transform change. */
+#avatar-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    cursor: grab;
+    background: var(--bs-body-bg);
+}
+
+.avatar-editor-stage.dragging #avatar-canvas {
+    cursor: grabbing;
+}
+
+/* Static mask: circular "hole" + dark veil + ring, composited by the
+   browser — zero canvas work, GPU-only. Never repainted while dragging. */
+.avatar-crop-mask {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    pointer-events: none; /* let all events reach the canvas below */
+    box-shadow: 0 0 0 1000px rgba(0, 0, 0, 0.55);
+    border: 2px solid var(--bs-secondary-border-subtle);
+    box-sizing: border-box;
+}
+
+.zoom-controls {
+    padding: 0 20px;
+}
+
+.zoom-controls .form-range {
+    width: 100%;
+}
+
+#avatar-upload-progress {
+    padding: 0 20px;
+}
+
+@media (max-width: 576px) {
+    .avatar-editor-stage {
+        max-width: 260px;
+    }
+}

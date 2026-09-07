@@ -7,6 +7,12 @@
 
     <div data-action-toolbar>
         <div class="btn-toolbar mb-2 gap-2">
+            <button type="button" class="btn btn-outline-success btn-sm" data-action="promote" data-url-prefix="/admin/users/" data-required-role="ROLE_CANDIDATE" data-confirm="{{ 'admin.confirm_promote'|trans }}" disabled>
+                <i class="bi bi-arrow-up"></i> {{ 'admin.promote'|trans }}
+            </button>
+            <button type="button" class="btn btn-outline-secondary btn-sm" data-action="demote" data-url-prefix="/admin/users/" data-required-role="ROLE_RECRUITER" data-confirm="{{ 'admin.confirm_demote'|trans }}" disabled>
+                <i class="bi bi-arrow-down"></i> {{ 'admin.demote'|trans }}
+            </button>
             <button type="button" class="btn btn-outline-warning btn-sm" data-action="block" data-url-prefix="/admin/users/" disabled>
                 <i class="bi bi-person-slash"></i> {{ 'admin.block_unblock'|trans }}
             </button>
@@ -19,7 +25,7 @@
                 </thead>
                 <tbody>
                 {% for user in users %}
-                    <tr data-row-id="{{ user.id }}">
+                    <tr data-row-id="{{ user.id }}" data-role="{{ user.primaryRole.value }}">
                         <td><input type="checkbox" class="form-check-input" aria-label="Select"></td>
                         <td>{{ user.email }}</td>
                         <td>{% for role in user.roles %}<span class="badge text-bg-secondary">{{ role }}</span> {% endfor %}</td>
@@ -31,23 +37,4 @@
             </table>
         </div>
     </div>
-{% endblock %}
-
-{% block javascripts %}
-    <script>
-        // "block" acts on the single selected row like edit does.
-        document.querySelectorAll('[data-action="block"]').forEach(function (btn) {
-            btn.addEventListener('click', function () {
-                const row = document.querySelector('tr[data-row-id].selected');
-                if (row) {
-                    const form = document.createElement('form');
-                    form.method = 'POST';
-                    form.action = '/admin/users/' + row.dataset.rowId + '/block';
-                    form.style.display = 'none';
-                    document.body.appendChild(form);
-                    form.submit();
-                }
-            });
-        });
-    </script>
 {% endblock %}

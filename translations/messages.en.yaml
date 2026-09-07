@@ -120,6 +120,16 @@ common.no: No
 common.save: Save
 common.view: View
 common.delete: Delete
+common.cancel: Cancel
+
+# --- Avatar editor modal ---
+profile.edit_avatar: Edit avatar
+profile.avatar_editor_hint: Drag to move · scroll or use the slider to zoom · rotate to fit
+profile.zoom: Zoom
+profile.rotate_left: Rotate left
+profile.rotate_right: Rotate right
+profile.reset: Reset
+profile.save_and_continue: Save and continue
 
 table.company: Company
 table.level: Level
@@ -166,6 +176,10 @@ admin.created: Created
 admin.active: active
 admin.blocked_badge: blocked
 admin.block_unblock: Block / Unblock
+admin.promote: Promote
+admin.demote: Demote
+admin.confirm_promote: Promote this user to recruiter?
+admin.confirm_demote: Demote this user to candidate?
 
 position.cv_list: 'CVs — %title%'
 position.cv_count: CV(s)

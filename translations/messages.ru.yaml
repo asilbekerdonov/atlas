@@ -130,6 +130,16 @@ common.no: Нет
 common.save: Сохранить
 common.view: Открыть
 common.delete: Удалить
+common.cancel: Отмена
+
+# --- Avatar editor modal ---
+profile.edit_avatar: Редактировать аватар
+profile.avatar_editor_hint: Перетащите, чтобы переместить · колесо или слайдер — масштаб · поверните для кадра
+profile.zoom: Масштаб
+profile.rotate_left: Повернуть влево
+profile.rotate_right: Повернуть вправо
+profile.reset: Сбросить
+profile.save_and_continue: Сохранить и продолжить
 
 table.company: Компания
 table.level: Уровень
@@ -176,6 +186,10 @@ admin.created: Создан
 admin.active: активен
 admin.blocked_badge: заблокирован
 admin.block_unblock: Блокировать / Разблокировать
+admin.promote: Повысить
+admin.demote: Понизить
+admin.confirm_promote: Повысить этого пользователя до рекрутера?
+admin.confirm_demote: Понизить этого пользователя до соискателя?
 
 position.cv_list: 'CV — %title%'
 position.cv_count: CV

@@ -102,6 +102,41 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return in_array($role->value, $this->roles, true);
     }
 
+    /**
+     * Adds a role if it is not present yet (idempotent).
+     */
+    public function addRole(UserRole $role): void
+    {
+        if (!$this->hasRole($role)) {
+            $this->roles[] = $role->value;
+        }
+    }
+
+    /**
+     * Removes a role if present (idempotent).
+     */
+    public function removeRole(UserRole $role): void
+    {
+        $this->roles = array_values(array_filter(
+            $this->roles,
+            static fn (string $existing): bool => $existing !== $role->value,
+        ));
+    }
+
+    /**
+     * The user's single "main" role, derived from the stored roles list.
+     * Admins inherit recruiter/candidate abilities through the security
+     * role_hierarchy, so only ROLE_ADMIN itself is ever stored for them.
+     */
+    public function getPrimaryRole(): UserRole
+    {
+        return match (true) {
+            $this->hasRole(UserRole::ROLE_ADMIN) => UserRole::ROLE_ADMIN,
+            $this->hasRole(UserRole::ROLE_RECRUITER) => UserRole::ROLE_RECRUITER,
+            default => UserRole::ROLE_CANDIDATE,
+        };
+    }
+
     public function isBlocked(): bool
     {
         return $this->isBlocked;

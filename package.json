@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "build": "php bin/console asset-map:compile"
+  },
   "dependencies": {
     "@popperjs/core": "^2.11.8",
     "@yaireo/tagify": "^4.38.0",

@@ -29,12 +29,28 @@
                 const action = btn.dataset.action;
                 if (action === 'create') {
                     btn.disabled = false;
-                } else if (action === 'delete') {
-                    btn.disabled = ids.length === 0;
-                } else {
-                    // edit / duplicate / apply act on a single row
-                    btn.disabled = ids.length !== 1;
+                    return;
                 }
+                if (action === 'delete') {
+                    btn.disabled = ids.length === 0;
+                    return;
+                }
+                // Single-row actions (edit / duplicate / apply / block / promote /
+                // demote): enabled only when exactly one row is selected.
+                const single = ids.length === 1;
+                if (!single) {
+                    btn.disabled = true;
+                    return;
+                }
+                // Role-gated actions: the selected row must carry the role the
+                // button targets (e.g. promote needs ROLE_CANDIDATE, demote needs
+                // ROLE_RECRUITER) — admins never match, so they stay disabled.
+                if (btn.dataset.requiredRole) {
+                    const row = rows.find(function (r) { return r.classList.contains('selected'); });
+                    btn.disabled = !row || row.dataset.role !== btn.dataset.requiredRole;
+                    return;
+                }
+                btn.disabled = false;
             });
         }
 
@@ -73,11 +89,16 @@
                     return;
                 }
 
-                if (action === 'edit' || action === 'view' || action === 'block') {
-                    window.location = btn.dataset.urlPrefix + id + (
-                        action === 'block' ? '/block' :
-                        action === 'edit' ? '/edit' : ''
-                    );
+                if (action === 'edit' || action === 'view') {
+                    window.location = btn.dataset.urlPrefix + id + (action === 'edit' ? '/edit' : '');
+                } else if (action === 'block') {
+                    // POST /admin/users/{id}/block (full page redirect on success).
+                    postForm(btn.dataset.urlPrefix + id + '/block');
+                } else if (action === 'promote' || action === 'demote') {
+                    // POST to /admin/users/{id}/promote|demote after confirmation.
+                    if (window.confirm(btn.dataset.confirm || 'Change this user\'s role?')) {
+                        postForm(btn.dataset.urlPrefix + id + '/' + action);
+                    }
                 } else if (action === 'apply') {
                     window.location = btn.dataset.urlPrefix + id + '/apply';
                 } else if (action === 'duplicate') {
