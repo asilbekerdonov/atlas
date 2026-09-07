@@ -19,11 +19,17 @@ final class Version20260902120000 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        $this->addSql('ALTER TABLE cv ADD COLUMN viewed_by_recruiter_at TIMESTAMP(0) WITHOUT TIME ZONE DEFAULT NULL');
+        $this->addSql('
+            ALTER TABLE cv 
+            ADD COLUMN viewed_by_recruiter_at TIMESTAMP(0) WITHOUT TIME ZONE DEFAULT NULL
+        ');
     }
 
     public function down(Schema $schema): void
     {
-        $this->addSql('ALTER TABLE cv DROP COLUMN viewed_by_recruiter_at');
+        $this->addSql('
+            ALTER TABLE cv 
+            DROP COLUMN viewed_by_recruiter_at
+        ');
     }
 }
