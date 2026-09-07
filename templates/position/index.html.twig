@@ -39,6 +39,7 @@
                     <th>{{ 'table.company'|trans }}</th>
                     <th>{{ 'table.level'|trans }}</th>
                     <th>{{ 'table.tags'|trans }}</th>
+                    <th>{{ 'table.format'|trans }}</th>
                     <th class="text-end">CVs</th>
                 </tr>
                 </thead>
@@ -54,11 +55,19 @@
                         <td>{{ position.level ?? '—' }}</td>
                         <td>{% for tag in tagMap[position.id] ?? [] %}<span class="badge text-bg-secondary">{{ tag.name }}</span> {% endfor %}</td>
                         <td class="text-end text-nowrap">
+                        {% if position.format %}
+                            <span class="badge text-bg-light">{{ position.format.label }}</span>
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+                        <td class="text-end text-nowrap">
                             {{ stats.total }}
                             {% if is_granted('ROLE_RECRUITER') and stats.new24 > 0 %}
                                 <span class="badge bg-success-subtle text-success border border-success-subtle ms-1">+{{ stats.new24 }} new</span>
                             {% endif %}
                         </td>
+                      
                     </tr>
                 {% else %}
                     <tr><td colspan="6" class="text-center text-muted py-4">{{ 'table.empty'|trans }}</td></tr>

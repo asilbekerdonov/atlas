@@ -37,9 +37,13 @@
                         <label class="form-label">{{ 'profile.avatar'|trans }}</label>
                         {% if isOwner %}
                             <div class="border rounded p-3 text-center text-muted" id="avatar-drop"
-                                 style="border-style: dashed !important">
-                                <i class="bi bi-cloud-arrow-up fs-3"></i>
-                                <div class="small">{{ 'profile.upload_avatar'|trans }}</div>
+                                 style="border-style: dashed !important; cursor: pointer;">
+                                {% if profile.avatarUrl %}
+                                    <img src="{{ profile.avatarUrl }}" width="80" class="rounded" alt="avatar">
+                                {% else %}
+                                    <i class="bi bi-cloud-arrow-up fs-3"></i>
+                                    <div class="small">{{ 'profile.upload_avatar'|trans }}</div>
+                                {% endif %}
                             </div>
                             <input type="hidden" data-autosave-field="avatarUrl" value="{{ profile.avatarUrl ?? '' }}">
                         {% else %}
@@ -242,6 +246,11 @@
                             }
                             // Показываем превью аватара сразу без перезагрузки
                             drop.innerHTML = '<img src="' + data.secure_url + '" width="80" class="rounded" alt="avatar">';
+
+                            const form = (hidden && hidden.closest('form[data-autosave]')) || document.querySelector('form[data-autosave]');
+                            if (form && form.__autosave && typeof form.__autosave.save === 'function') {
+                                form.__autosave.save();
+                            }
                         }
                     }).catch(function () { /* non-fatal */ });
                 }
