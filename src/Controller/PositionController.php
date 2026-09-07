@@ -3,14 +3,17 @@
 declare(strict_types=1);
 
 namespace App\Controller;
+use App\Entity\Cv;
 use App\Entity\Position;
 use App\DTO\Request\PositionRequestDTO;
 use App\Enum\AccessRuleOperator;
 use App\Enum\Format;
+use App\Enum\Level;
 use App\Exception\OptimisticLockConflictException;
 use App\Factory\PositionResponseFactory;
 use App\Mapper\PositionRequestMapper;
 use App\Repository\AttributeRepository;
+use App\Repository\CvRepository;
 use App\Repository\PositionRepository;
 use App\Security\Voter\PositionVoter;
 use App\Service\Position\PositionService;
@@ -26,6 +29,7 @@ final class PositionController extends AbstractController
 {
     public function __construct(
         private readonly PositionRepository $positionRepository,
+        private readonly CvRepository $cvRepository,
         private readonly PositionService $positionService,
         private readonly PositionViewService $positionViewService,
         private readonly PositionRequestMapper $requestMapper,
@@ -68,7 +72,8 @@ final class PositionController extends AbstractController
             ? $this->positionViewService->hasAppliedCv($user, $position)
             : false;
 
-        $discussions = $position->getDiscussions();
+        // array_map works on arrays only — hydrate the collection first.
+        $discussions = $position->getDiscussions()->toArray();
         $authorIds = array_keys(
             array_combine(
                 array_map(fn ($d) => $d->getAuthor()->getId(), $discussions),
@@ -94,6 +99,7 @@ final class PositionController extends AbstractController
         return $this->render('position/form.html.twig', [
             'position' => null,
             'formats' => Format::cases(),
+            'levels' => Level::cases(),
             'attributes' => $attributeRepository->findBy([], ['name' => 'ASC']),
             'operators' => AccessRuleOperator::cases(),
         ]);
@@ -133,6 +139,7 @@ final class PositionController extends AbstractController
         return $this->render('position/form.html.twig', [
             'position' => $position,
             'formats' => Format::cases(),
+            'levels' => Level::cases(),
             'attributes' => $attributeRepository->findBy([], ['name' => 'ASC']),
             'operators' => AccessRuleOperator::cases(),
         ]);
@@ -230,9 +237,7 @@ final class PositionController extends AbstractController
     {
         $this->denyAccessUnlessGranted(PositionVoter::VIEW, $position);
 
-        $cvs = $this->positionRepository->getEntityManager()
-            ->getRepository(Cv::class)
-            ->findPublishedByPosition($position);
+        $cvs = $this->cvRepository->findPublishedByPosition($position);
 
         foreach ($cvs as $cv) {
             $cv->markViewedByRecruiter();

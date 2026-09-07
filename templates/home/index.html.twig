@@ -73,7 +73,7 @@
                                 <span class="badge tag-badge">{{ tag.name }}</span>
                             {% endfor %}
                         </td>
-                          {% if position.format %}<td><span class="badge bg-secondary-subtle text-secondary border me-1"><i class="bi bi-geo-alt"></i> {{ position.format.label }}</span></td>  {% endif %}
+                          {% if position.format %}<td><span class="badge bg-secondary-subtle text-secondary border me-1"><i class="bi bi-geo-alt"></i> {{ position.format.translationKey()|trans }}</span></td>  {% endif %}
                     </tr>
                 {% else %}
                     <td colspan="4" class="text-center text-muted py-4">'—'</td>

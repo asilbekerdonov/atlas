@@ -23,7 +23,7 @@
                     <tr>
                         <td><a class="position-title" href="{{ path('position_show', {id: position.id}) }}">{{ position.title }}</a></td>
                         <td>{{ position.companyName ?? '—' }}</td>
-                        <td>{{ position.level ?? '—' }}</td>
+                        <td>{% if position.level %}{{ position.level.translationKey()|trans }}{% else %}—{% endif %}</td>
                     </tr>
                 {% else %}
                     <tr><td colspan="3" class="text-center text-muted py-4">{{ 'table.empty'|trans }}</td></tr>

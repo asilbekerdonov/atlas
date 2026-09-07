@@ -149,4 +149,24 @@ final class AttributeApiTest extends AbstractFunctionalTestCase
         self::assertStringContainsString('Quantum Physics', $html, 'unknown category must render raw, without error');
         self::assertStringNotContainsString('attribute.category.quantum_physics', $html, 'no dangling translation key may leak');
     }
+
+    /**
+     * Regression: search used to 500 when the result contained an attribute
+     * WITHOUT options (e.g. "Python", BOOLEAN) because attributePayload()
+     * called the non-existent Attribute::getFormat(). Prefixes matching
+     * nothing returned 200 only because the payload mapper never ran.
+     */
+    public function testSearchReturns200ForBooleanAttributeWithoutOptions(): void
+    {
+        $this->em->persist(new Attribute('Python', $this->category('Technical Skills'), AttributeDataType::BOOLEAN));
+        $this->em->flush();
+
+        $this->client->request('GET', '/api/attributes/search?q=python&limit=8', [], [], ['HTTP_ACCEPT' => 'application/json']);
+
+        self::assertResponseIsSuccessful();
+        $data = json_decode($this->client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR);
+        self::assertNotEmpty($data, 'the search must find the Python attribute');
+        self::assertSame('Python', $data[0]['name']);
+        self::assertSame([], $data[0]['options'], 'an attribute without options must serialise an empty list');
+    }
 }

@@ -8,10 +8,10 @@
                 <h1 class="h3 mb-1">{{ position.title }}</h1>
                 <div class="text-muted small">
                     {% if position.companyName %}{{ position.companyName }} · {% endif %}
-                    {% if position.level %}{{ position.level }} · {% endif %}
+                    {% if position.level %}{{ position.level.translationKey()|trans }} · {% endif %}
                     {{ 'position.max_projects'|trans({'%count%': position.maxProjects}) }} ·
                     {{ position.isPublic ? 'position.public'|trans : 'position.private'|trans }} ·
-                    {% if position.format %}<span class="badge bg-secondary-subtle text-secondary border me-1"><i class="bi bi-geo-alt"></i> {{ position.format.label }}</span>  {% endif %}
+                    {% if position.format %}<span class="badge bg-secondary-subtle text-secondary border me-1"><i class="bi bi-geo-alt"></i> {{ position.format.translationKey()|trans }}</span>  {% endif %}
 
                 </div>
                 <div class="mt-2">

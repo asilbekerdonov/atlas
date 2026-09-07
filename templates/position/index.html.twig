@@ -52,11 +52,11 @@
                             <a class="position-title" href="{{ path('position_show', {id: position.id}) }}">{{ position.title }}</a>
                         </td>
                         <td>{{ position.companyName ?? '—' }}</td>
-                        <td>{{ position.level ?? '—' }}</td>
+                        <td>{% if position.level %}{{ position.level.translationKey()|trans }}{% else %}—{% endif %}</td>
                         <td>{% for tag in tagMap[position.id] ?? [] %}<span class="badge text-bg-secondary">{{ tag.name }}</span> {% endfor %}</td>
                         <td class="text-end text-nowrap">
                         {% if position.format %}
-                            <span class="badge text-bg-light">{{ position.format.label }}</span>
+                            <span class="badge text-bg-light">{{ position.format.translationKey()|trans }}</span>
                         {% else %}
                             —
                         {% endif %}

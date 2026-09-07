@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\DTO;
 
 use App\Enum\Format;
+use App\Enum\Level;
 
 /**
  * Input for creating/updating a position.
@@ -23,7 +24,7 @@ final readonly class PositionDTO
         public string $title,
         public string $shortDescription,
         public ?string $companyName = null,
-        public ?string $level = null,
+        public ?Level $level = null,
         public ?Format $format = null,
         public bool $isPublic = false,
         public int $maxProjects = 4,

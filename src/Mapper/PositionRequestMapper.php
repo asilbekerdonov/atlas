@@ -12,6 +12,7 @@ use App\DTO\Request\PositionAccessRuleRequestDTO;
 use App\DTO\Request\PositionTemplateAttributeRequestDTO;
 use App\Enum\AccessRuleOperator;
 use App\Enum\Format;
+use App\Enum\Level;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\SerializerInterface;
 
@@ -70,7 +71,7 @@ class PositionRequestMapper
             title: $dto->title,
             shortDescription: $dto->shortDescription,
             companyName: $dto->companyName,
-            level: $dto->level,
+            level: self::mapLevel($dto->level),
             format: $dto->format !== null && $dto->format !== '' 
                 ? Format::tryFrom($dto->format) 
                 : null,
@@ -80,6 +81,21 @@ class PositionRequestMapper
             accessRules: $accessRules,
             tags: $dto->tags,
         );
+    }
+
+    /**
+     * Maps a raw level string to the enum. Accepts both the canonical enum
+     * value (JUNIOR) and legacy title-case labels (Junior, C-Level) that were
+     * stored before the enum existed, so old rows never read as null.
+     */
+    private static function mapLevel(?string $value): ?Level
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        return Level::tryFrom($value)
+            ?? Level::tryFrom(strtoupper(str_replace('-', '_', $value)));
     }
 
     /**

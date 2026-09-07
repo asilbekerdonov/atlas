@@ -27,6 +27,7 @@ use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use App\Enum\Format;
+use App\Enum\Level;
 /**
  * Demo data following the exam scenario: Acme Corp, Anna, CAP,
  * Junior Data Engineer. Load with:
@@ -79,7 +80,7 @@ final class AppFixtures extends Fixture implements DependentFixtureInterface
         // ------------------------------------------------------------------ Position 1: Junior Data Engineer @ Acme Corp (key scenario)
         $jde = new Position('Junior Data Engineer @ Acme Corp', 'Join the Acme Corp data team: build and maintain data pipelines, reports and analytics tooling.');
         $jde->setCompanyName('Acme Corp');
-        $jde->setLevel('Junior');
+        $jde->setLevel(Level::JUNIOR);
         $jde->setPublic(false);
         $jde->setMaxProjects(4);
         $jde->setFormat(Format::Hybrid);
@@ -106,7 +107,7 @@ final class AppFixtures extends Fixture implements DependentFixtureInterface
         // ------------------------------------------------------------------ Position 2: Senior Data Scientist @ AI Labs
         $sds = new Position('Senior Data Scientist @ AI Labs', 'Advanced ML modeling and productionization with PyTorch.');
         $sds->setCompanyName('AI Labs');
-        $sds->setLevel('Senior');
+        $sds->setLevel(Level::SENIOR);
         $sds->setFormat(Format::Remote);
         $sds->setPublic(true);
         foreach ([$pythonTag, $ml, $pytorch] as $tag) {

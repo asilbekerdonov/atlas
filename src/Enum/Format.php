@@ -10,12 +10,16 @@ enum Format: string
     case Local = 'ON_SITE';
     case Hybrid = 'HYBRID';
 
-    public function label(): string
+    /**
+     * Translation key for the human-readable label (rendered via |trans).
+     * Never output the raw enum value or a hardcoded label in the UI.
+     */
+    public function translationKey(): string
     {
-        return match($this) {
-            self::Remote => 'Remote',
-            self::Local => 'On-site',
-            self::Hybrid => 'Hybrid',
+        return match ($this) {
+            self::Remote => 'position.format.remote',
+            self::Local => 'position.format.on_site',
+            self::Hybrid => 'position.format.hybrid',
         };
     }
 }

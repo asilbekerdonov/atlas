@@ -153,6 +153,14 @@ position.max_projects: '%count% макс. проектов'
 position.public: публичная
 position.private: частная
 position.attributes_tab: Атрибуты
+position.format.remote: Удалённо
+position.format.on_site: В офисе
+position.format.hybrid: Гибрид
+position.level.junior: Младший
+position.level.middle: Мидл
+position.level.senior: Старший
+position.level.lead: Лид
+position.level.c_level: C-Level
 
 attribute.type.string: Строка
 attribute.type.text: Текст

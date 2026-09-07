@@ -218,7 +218,6 @@ final class AttributeLibraryController extends AbstractController
             'name' => $a->getName(),
             'category' => $a->getCategory()->getName(),
             'dataType' => $a->getDataType()->value,
-            'format' => $a->getFormat(),
             'description' => $a->getDescription(),
             'options' => array_map(
                 static fn ($option): array => ['id' => $option->getId(), 'label' => $option->getLabel()],

@@ -38,8 +38,11 @@
                             <label class="form-label fw-semibold">Level</label>
                             <select class="form-select" name="level">
                                 <option value="">—</option>
-                                {% for level in ['Junior', 'Middle', 'Senior', 'Lead', 'C-Level'] %}
-                                    <option value="{{ level }}" {{ position and position.level == level ? 'selected' : '' }}>{{ level }}</option>
+                                {% for l in levels %}
+                                    <option value="{{ l.value }}"
+                                        {{ position and position.level and position.level.value == l.value ? 'selected' : '' }}>
+                                        {{ l.translationKey()|trans }}
+                                    </option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -50,7 +53,7 @@
                                 {% for f in formats %}
                                     <option value="{{ f.value }}" 
                                         {{ position and position.format and position.format.value == f.value ? 'selected' : '' }}>
-                                        {{ f.label }}
+                                        {{ f.translationKey()|trans }}
                                     </option>
                                 {% endfor %}
                             </select>

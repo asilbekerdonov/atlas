@@ -10,6 +10,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use App\Enum\Format;
+use App\Enum\Level;
 /**
  * A job position recruiters publish; candidates attach a CV to it.
  *
@@ -34,8 +35,8 @@ class Position
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $companyName = null;
 
-    #[ORM\Column(length: 100, nullable: true)]
-    private ?string $level = null;
+    #[ORM\Column(length: 100, enumType: Level::class, nullable: true)]
+    private ?Level $level = null;
 
     #[ORM\Column(options: ['default' => false])]
     private bool $isPublic = false;
@@ -142,12 +143,12 @@ class Position
         $this->companyName = $companyName;
     }
 
-    public function getLevel(): ?string
+    public function getLevel(): ?Level
     {
         return $this->level;
     }
 
-    public function setLevel(?string $level): void
+    public function setLevel(?Level $level): void
     {
         $this->level = $level;
     }

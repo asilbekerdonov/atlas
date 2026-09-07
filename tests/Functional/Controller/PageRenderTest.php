@@ -234,7 +234,8 @@ final class PageRenderTest extends AbstractFunctionalTestCase
         $this->client->request('GET', '/positions/new');
 
         self::assertResponseIsSuccessful();
-        self::assertSelectorExists('select[name="level"] option[value="Junior"]');
+        self::assertSelectorExists('select[name="level"] option[value="JUNIOR"]');
+        self::assertSelectorExists('select[name="level"] option[value="C_LEVEL"]');
         self::assertSelectorExists('input[name="companyName"]');
         self::assertSelectorExists('#rules-list');
         self::assertSelectorExists('#position-tags');

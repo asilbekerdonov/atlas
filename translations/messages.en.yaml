@@ -143,6 +143,14 @@ position.max_projects: '%count% max project(s)'
 position.public: public
 position.private: private
 position.attributes_tab: Attributes
+position.format.remote: Remote
+position.format.on_site: On-site
+position.format.hybrid: Hybrid
+position.level.junior: Junior
+position.level.middle: Middle
+position.level.senior: Senior
+position.level.lead: Lead
+position.level.c_level: C-Level
 
 attribute.type.string: String
 attribute.type.text: Text
