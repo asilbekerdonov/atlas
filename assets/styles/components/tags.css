@@ -63,6 +63,13 @@
     transition: all 0.15s ease;
 }
 
+.tag-stack {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.3rem;
+}
+
 [data-bs-theme="dark"] .tag-badge {
     background: rgba(76, 175, 148, 0.14) !important;
     color: #6FCBB0 !important;

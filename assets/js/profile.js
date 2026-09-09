@@ -390,7 +390,7 @@
             tagsInput.tagify = tagify;
         }
 
-        // Debounced autosave
+        // Debounced autosave 
         let projectTimer = null;
         row.addEventListener('input', function() {
             clearTimeout(projectTimer);
@@ -1221,25 +1221,6 @@
         }
     }
     
-
-    // Обработка ошибок сети
-    window.addEventListener('online', function() {
-        const badge = document.querySelector('.autosave-badge');
-        if (badge) {
-            badge.textContent = badge.dataset.saved || 'Сохранено';
-            badge.classList.remove('text-bg-danger');
-            badge.classList.add('text-bg-success');
-        }
-    });
-    
-    window.addEventListener('offline', function() {
-        const badge = document.querySelector('.autosave-badge');
-        if (badge) {
-            badge.textContent = 'Офлайн - изменения будут сохранены при восстановлении соединения';
-            badge.classList.remove('text-bg-success');
-            badge.classList.add('text-bg-danger');
-        }
-    });
 
     console.log('Profile JS initialized successfully');
 })();

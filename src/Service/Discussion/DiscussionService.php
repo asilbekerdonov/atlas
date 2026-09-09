@@ -37,6 +37,7 @@ class DiscussionService
             'id' => $discussion->getId(),
             'positionId' => $position->getId(),
             'authorId' => $author->getId(),
+            'author' => $author->getEmail(),
             'messageMd' => $messageMd,
             'createdAt' => $discussion->getCreatedAt()->format(DATE_ATOM),
         ], JSON_THROW_ON_ERROR);

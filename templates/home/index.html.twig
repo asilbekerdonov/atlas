@@ -69,9 +69,11 @@
                         <td><a class="position-title" href="{{ path('position_show', {id: position.id}) }}">{{ position.title }}</a></td>
                         <td>{{ position.companyName ?? '—' }}</td>
                         <td>
-                            {% for tag in position.tags %}
-                                <span class="badge tag-badge">{{ tag.name }}</span>
-                            {% endfor %}
+                            <div class="tag-stack">
+                                {% for tag in position.tags %}
+                                    <span class="badge tag-badge">{{ tag.name }}</span>
+                                {% endfor %}
+                            </div>
                         </td>
                           {% if position.format %}<td><span class="badge bg-secondary-subtle text-secondary border me-1"><i class="bi bi-geo-alt"></i> {{ position.format.translationKey()|trans }}</span></td>  {% endif %}
                     </tr>
@@ -133,8 +135,7 @@
     </h2>
     <div class="tag-cloud mb-4">
         {% for tag in tagCloud %}
-            {% set size = 0.85 + (tag.count / 25) %}
-            {% if size > 1.35 %}{% set size = 1.35 %}{% endif %}
+            {% set size = 0.75 + (tag.count / maxTagCount * 1.0) %}
             <a href="{{ path('search_index') }}?q={{ tag.name|url_encode }}"
                class="tag-pill" style="font-size: {{ size }}rem">
                 {{ tag.name }} ({{ tag.count }})

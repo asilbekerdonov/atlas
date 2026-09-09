@@ -13,9 +13,13 @@
                 return;
             }
             const labels = badge.dataset;
+            badge.classList.remove('d-none');
             if (state === 'saving') {
                 badge.className = 'badge text-bg-warning autosave-badge';
                 badge.textContent = labels.saving;
+            } else if (state === 'error') {
+                badge.className = 'badge text-bg-danger autosave-badge';
+                badge.textContent = labels.error || 'Не удалось сохранить';
             } else {
                 badge.className = 'badge text-bg-success autosave-badge';
                 badge.textContent = labels.saved;
@@ -62,8 +66,11 @@
                 '<button type="button" class="btn-close" data-bs-dismiss="toast"></button></div>' +
                 '<div class="toast-body">' +
                 (badge ? badge.dataset.conflictBody : '') +
-                '<button type="button" class="btn btn-sm btn-light mt-2" id="reload-data">' +
-                (badge ? badge.dataset.reload : 'Reload') + '</button></div>';
+                '<div class="mt-2 d-flex gap-2">' +
+                '<button type="button" class="btn btn-sm btn-light" id="reload-data">' +
+                (badge ? badge.dataset.reload : 'Reload') + '</button>' +
+                '<button type="button" class="btn btn-sm btn-outline-light" data-bs-dismiss="toast">Оставить мои изменения</button>' +
+                '</div></div>';
             container.appendChild(toast);
             toast.querySelector('#reload-data').addEventListener('click', function () {
                 window.location.reload();
@@ -78,7 +85,7 @@
             if (timer) {
                 clearTimeout(timer);
             }
-            timer = setTimeout(save, 6000); // debounce 6s
+            timer = setTimeout(save, 600); // debounce input bursts
             if (badge) {
                 badge.className = 'badge text-bg-secondary autosave-badge';
                 badge.textContent = badge.dataset.waiting || '…';
@@ -95,12 +102,31 @@
             }
             inFlight = true;
             setBadge('saving');
+            if (!navigator.onLine) {
+                inFlight = false;
+                setOffline();
+                return Promise.resolve({ ok: false, offline: true });
+            }
             return fetch('/api/profile/autosave', {
                 method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
                 body: JSON.stringify(collect())
             }).then(function (response) {
-                return response.json().then(function (data) {
+                return response.text().then(function (body) {
+                    let data = {};
+                    if (body.trim() !== '') {
+                        try {
+                            data = JSON.parse(body);
+                        } catch (err) {
+                            console.error('Autosave returned invalid JSON.', {
+                                status: response.status,
+                                body: body
+                            });
+                        }
+                    }
                     return { ok: response.ok, status: response.status, data: data };
                 });
             }).then(function (result) {
@@ -115,12 +141,17 @@
                 } else if (result.status === 409) {
                     showConflictToast(result.data.serverVersion);
                 } else {
-                    setBadge('saved');
+                    setBadge('error');
                 }
                 return result;
             }).catch(function (err) {
                 inFlight = false;
-                setBadge('saved');
+                console.error('Autosave request failed.', err);
+                if (!navigator.onLine) {
+                    setOffline();
+                } else {
+                    setBadge('error');
+                }
                 throw err;
             });
         }
@@ -135,4 +166,23 @@
         form.addEventListener('change', scheduleSave);
         form.addEventListener('autosave:save', save);
     });
+
+    function setOffline() {
+        document.querySelectorAll('.autosave-badge').forEach(function (badge) {
+            badge.classList.remove('d-none', 'text-bg-success', 'text-bg-warning', 'text-bg-secondary');
+            badge.classList.add('badge', 'text-bg-danger', 'autosave-badge');
+            badge.textContent = 'Офлайн...';
+        });
+    }
+
+    function setOnline() {
+        document.querySelectorAll('.autosave-badge').forEach(function (badge) {
+            badge.classList.remove('d-none', 'text-bg-danger', 'text-bg-warning', 'text-bg-secondary');
+            badge.classList.add('badge', 'text-bg-success', 'autosave-badge');
+            badge.textContent = badge.dataset.saved || 'Сохранено';
+        });
+    }
+
+    window.addEventListener('offline', setOffline);
+    window.addEventListener('online', setOnline);
 })();

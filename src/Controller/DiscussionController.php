@@ -44,7 +44,16 @@ final class DiscussionController extends AbstractController
             return $this->redirectToRoute('position_show', ['id' => $position->getId(), '_fragment' => 'tab-discussion']);
         }
 
-        $discussionService->postMessage($position, $this->getUser(), $dto->message);
+        $discussion = $discussionService->postMessage($position, $this->getUser(), $dto->message);
+        if ($request->getContentTypeFormat() === 'json' || $request->isXmlHttpRequest() || $request->headers->contains('Accept', 'application/json')) {
+            return $this->json([
+                'success' => true,
+                'id' => $discussion->getId(),
+                'author' => $discussion->getAuthor()->getEmail(),
+                'createdAt' => $discussion->getCreatedAt()->format('Y-m-d H:i'),
+                'messageMd' => $discussion->getMessageMd(),
+            ], Response::HTTP_CREATED);
+        }
         $this->addFlash('success', 'Message posted.');
 
         // Keep the visitor on the discussion tab after the redirect.

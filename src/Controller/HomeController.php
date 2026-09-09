@@ -32,12 +32,15 @@ final class HomeController extends AbstractController
 
             return $positionRepository->findTagCloud(20);
         });
+        $tagCounts = array_map(static fn (array $tag): int => (int) $tag['count'], $tagCloud);
+        $maxTagCount = $tagCounts === [] ? 1 : max($tagCounts);
 
         // Guest → marketing landing page.
         if (!$this->getUser()) {
             return $this->render('home/landing.html.twig', [
                 'stats' => $stats,
                 'tagCloud' => $tagCloud,
+                'maxTagCount' => $maxTagCount,
             ]);
         }
 
@@ -46,6 +49,7 @@ final class HomeController extends AbstractController
             'latestPositions' => $positionRepository->findLatest(5),
             'topPositions' => $positionRepository->findTopByCvCount(5),
             'tagCloud' => $tagCloud,
+            'maxTagCount' => $maxTagCount,
             'stats' => $stats,
         ]);
     }
