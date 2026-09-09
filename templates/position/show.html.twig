@@ -19,15 +19,30 @@
                 </div>
             </div>
             {% if is_granted('ROLE_RECRUITER') %}
-                <div class="btn-group btn-group-sm">
-                    <a class="btn btn-outline-secondary" href="{{ path('position_edit', {id: position.id}) }}"><i class="bi bi-pencil"></i> {{ 'toolbar.edit'|trans }}</a>
-                    <a class="btn btn-outline-secondary" href="{{ path('position_cvs', {id: position.id}) }}"><i class="bi bi-collection"></i> {{ 'profile.cvs'|trans }}</a>
+                <div class="btn-group btn-group-sm position-page-actions">
+                    <a class="btn position-action-btn" href="{{ path('position_edit', {id: position.id}) }}"
+                       aria-label="{{ 'toolbar.edit'|trans }}" title="{{ 'toolbar.edit'|trans }}">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    <a class="btn position-action-btn position-relative" href="{{ path('position_cvs', {id: position.id}) }}"
+                       aria-label="{{ 'profile.cvs'|trans }}" title="{{ 'profile.cvs'|trans }}">
+                        <i class="bi bi-collection"></i>
+                        {% if newCvCount > 0 %}
+                            <span class="position-cv-badge badge bg-danger rounded-pill">{{ newCvCount }}</span>
+                        {% endif %}
+                    </a>
                     <form method="post" action="{{ path('position_duplicate', {id: position.id}) }}" class="m-0">
-                        <button class="btn btn-outline-secondary" type="submit"><i class="bi bi-files"></i></button>
+                        <button class="btn position-action-btn" type="submit"
+                                aria-label="{{ 'toolbar.duplicate'|trans }}" title="{{ 'toolbar.duplicate'|trans }}">
+                            <i class="bi bi-files"></i>
+                        </button>
                     </form>
                     <form method="post" action="{{ path('position_delete', {id: position.id}) }}" class="m-0"
-                        onsubmit="return confirm('{{ 'toolbar.delete'|trans }}?')">
-                        <button class="btn btn-outline-danger" type="submit"><i class="bi bi-trash"></i></button>
+                          onsubmit="return confirm('{{ 'toolbar.delete'|trans }}?')">
+                        <button class="btn position-action-btn position-action-danger" type="submit"
+                                aria-label="{{ 'toolbar.delete'|trans }}" title="{{ 'toolbar.delete'|trans }}">
+                            <i class="bi bi-trash"></i>
+                        </button>
                     </form>
                 </div>
             {% endif %}

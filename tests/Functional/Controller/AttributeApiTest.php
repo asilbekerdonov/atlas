@@ -58,6 +58,49 @@ final class AttributeApiTest extends AbstractFunctionalTestCase
         self::assertSame('name_exists', $data['error']);
     }
 
+    public function testCreateNameInAnotherCaseReturns409(): void
+    {
+        // First creation in lowercase wins.
+        $first = $this->jsonRequest($this->client, 'POST', '/attributes/new', [
+            'name' => 'python',
+            'category' => 'Technical Skills',
+            'dataType' => 'STRING',
+        ]);
+        self::assertResponseStatusCodeSame(201);
+
+        // Same name in another case must conflict (case-insensitive unique).
+        $response = $this->jsonRequest($this->client, 'POST', '/attributes/new', [
+            'name' => 'PYTHON',
+            'category' => 'Technical Skills',
+            'dataType' => 'STRING',
+        ]);
+
+        self::assertResponseStatusCodeSame(409);
+        $data = json_decode($response->getContent(), true, flags: JSON_THROW_ON_ERROR);
+        self::assertSame('name_exists', $data['error']);
+    }
+
+    public function testPureCaseChangeOfOwnNameStaysAllowed(): void
+    {
+        // Renaming "python" → "Python" touches only this attribute, so the
+        // case-insensitive check must NOT report a conflict with itself.
+        $create = $this->jsonRequest($this->client, 'POST', '/attributes/new', [
+            'name' => 'python',
+            'category' => 'Technical Skills',
+            'dataType' => 'STRING',
+        ]);
+        $created = json_decode($create->getContent(), true, flags: JSON_THROW_ON_ERROR);
+        self::assertResponseStatusCodeSame(201);
+
+        $response = $this->jsonRequest($this->client, 'POST', '/attributes/' . $created['id'] . '/edit', [
+            'name' => 'Python',
+            'category' => 'Technical Skills',
+            'dataType' => 'STRING',
+        ]);
+
+        self::assertResponseStatusCodeSame(200);
+    }
+
     public function testOneOfManyWithoutOptionsReturns422(): void
     {
         $response = $this->jsonRequest($this->client, 'POST', '/attributes/new', [

@@ -28,7 +28,10 @@ final class PageRenderTest extends AbstractFunctionalTestCase
         $this->client->request('GET', '/');
 
         self::assertResponseIsSuccessful();
-        self::assertSelectorExists('table.table'); // latest positions table
+        // Guests see the marketing landing (no positions table since the
+        // 87674be redesign); assert the hero heading instead of the old
+        // dashboard-only table.
+        self::assertSelectorExists('h1.display-5');
     }
 
     public function testPositionsIndexRendersWithToolbar(): void

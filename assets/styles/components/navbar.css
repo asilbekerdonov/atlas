@@ -30,3 +30,70 @@
 [data-bs-theme="dark"] .navbar .navbar-text {
     color: #8FA79E !important;
 }
+
+/* ==========================================================================
+   8b. Header search suggestions (#nav-search-suggest)
+   The markup is a Bootstrap .dropdown-menu filled by JS with .dropdown-item
+   rows. Bootstrap's own dropdown palette is NOT colour-mode aware enough
+   here, so the panel is restyled to match the surface system from theme.css
+   (cards/menus = level-1 surface, hover = level-2 accent). Visual only —
+   the JS d-none toggle is untouched.
+   ========================================================================== */
+#nav-search-suggest {
+    /* Panel surface: same level as cards/tables in both themes. */
+    --bs-dropdown-bg: var(--bs-tertiary-bg);
+    --bs-dropdown-border-color: var(--bs-border-color);
+    background: var(--bs-tertiary-bg);
+
+    /* Card-like elevation + rounding, consistent with .card/.modal-content. */
+    border-radius: var(--bs-border-radius-lg);
+    border: 1px solid var(--bs-border-color);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.10);
+
+    /* Keep the panel above the navbar and any sticky/page content. */
+    z-index: 1080;
+
+    /* Long result lists scroll inside the panel instead of overflowing. */
+    max-height: 320px;
+    overflow-y: auto;
+}
+
+/* Each result row is a real link row with its own tap target. */
+#nav-search-suggest .dropdown-item {
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--bs-border-color);
+    color: var(--bs-body-color);
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+/* No divider under the last row — the panel border already closes it. */
+#nav-search-suggest .dropdown-item:last-child {
+    border-bottom: none;
+}
+
+/* Hover follows the interactive-list accent used by tables, not Bootstrap's
+   default dropdown tint. */
+#nav-search-suggest .dropdown-item:hover,
+#nav-search-suggest .dropdown-item:focus {
+    background: var(--bs-table-hover-bg);
+    color: var(--bs-body-color);
+}
+
+/* Sub-labels ("company") reuse the muted text colour of the theme. */
+#nav-search-suggest .dropdown-item .text-muted,
+#nav-search-suggest .dropdown-item small {
+    color: var(--bs-secondary-color);
+}
+
+/* Dark theme: strengthen elevation & row separation — hairline borders
+   need more presence on the near-black surface. */
+[data-bs-theme="dark"] #nav-search-suggest {
+    background: #161D1B; /* level 1 — matches .card/.modal-content */
+    border-color: rgba(255, 255, 255, 0.10);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.55);
+}
+
+[data-bs-theme="dark"] #nav-search-suggest .dropdown-item {
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+}

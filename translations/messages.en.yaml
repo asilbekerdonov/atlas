@@ -5,6 +5,9 @@ nav.attributes: Attribute library
 nav.new_position: New position
 nav.users: Users
 nav.login: Login
+nav.register: Register
+login.no_account: No account?
+login.register: Register
 nav.logout: Logout
 nav.search_placeholder: Search positions and CVs…
 nav.theme.dark: Dark theme
@@ -81,6 +84,9 @@ profile.cvs: CVs
 profile.first_name: First name
 profile.last_name: Last name
 profile.location: Location
+profile.pick_on_map: Pick on map
+profile.map_drag_hint: Drag the marker to your location, then press "Use this address"
+profile.use_this_address: Use this address
 profile.avatar: Avatar
 profile.upload_avatar: Drop an image here or click to upload (JPEG/PNG/WebP, max 5 MB)
 profile.add_attribute: Add attribute…

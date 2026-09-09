@@ -17,6 +17,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
@@ -62,6 +63,9 @@ final class CandidateProfileController extends AbstractController
         return [
             'profile' => $profile,
             'projectViews' => $this->projectService->listProjects($profile),
+            // Browser key for the "pick location on a map" modal; injected
+            // into the page only, the script itself loads lazily.
+            'yandexMapsApiKey' => $this->getParameter('yandex_maps_js_api_key'),
         ];
     }
 
@@ -159,5 +163,63 @@ final class CandidateProfileController extends AbstractController
             'newVersion' => $result->newVersion,
             'unpublishedCvs' => $result->unpublishedCvs,
         ]);
+    }
+
+    /**
+     * Server-side reverse geocoding for the location picker modal.
+     *
+     * The frontend sends a placemark's {lat, lng} after a drag and gets back
+     * a human-readable address. The Geocoder API key lives only on the server
+     * (never shipped to the browser), and lookups fire on dragend — not on
+     * every pixel — to stay inside the free daily quota.
+     */
+    #[Route('/api/profile/geocode', name: 'profile_geocode', methods: ['POST'])]
+    public function reverseGeocode(Request $request, HttpClientInterface $httpClient): JsonResponse
+    {
+        $payload = json_decode((string) $request->getContent(), true);
+        $lat = isset($payload['lat']) ? (float) $payload['lat'] : 0.0;
+        $lng = isset($payload['lng']) ? (float) $payload['lng'] : 0.0;
+
+        if ($lat < -90.0 || $lat > 90.0 || $lng < -180.0 || $lng > 180.0) {
+            return new JsonResponse(['error' => 'invalid_coordinates'], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        $apiKey = $this->getParameter('yandex_geocoder_api_key');
+        if ($apiKey === '') {
+            return new JsonResponse(['error' => 'geocoder_not_configured'], Response::HTTP_SERVICE_UNAVAILABLE);
+        }
+
+        try {
+            // Yandex Geocoder HTTP API (current docs): /v1, coordinates as
+            // "longitude,latitude", lang is required.
+            $response = $httpClient->request('GET', 'https://geocode-maps.yandex.ru/v1', [
+                'query' => [
+                    'format' => 'json',
+                    'apikey' => $apiKey,
+                    'geocode' => sprintf('%.6f,%.6f', $lng, $lat),
+                    'lang' => 'ru_RU',
+                    'results' => '1',
+                ],
+                'timeout' => 5,
+            ]);
+            $data = $response->toArray();
+        } catch (\Throwable $e) {
+            return new JsonResponse(['error' => 'geocoder_request_failed'], Response::HTTP_BAD_GATEWAY);
+        }
+
+        $feature = $data['response']['GeoObjectCollection']['featureMember'][0]['GeoObject'] ?? null;
+        if ($feature === null) {
+            return new JsonResponse(['error' => 'address_not_found'], Response::HTTP_NOT_FOUND);
+        }
+
+        $address = $feature['metaDataProperty']['GeocoderMetaData']['text']
+            ?? $feature['name']
+            ?? null;
+
+        if ($address === null || $address === '') {
+            return new JsonResponse(['error' => 'address_not_found'], Response::HTTP_NOT_FOUND);
+        }
+
+        return new JsonResponse(['success' => true, 'address' => $address]);
     }
 }

@@ -62,3 +62,58 @@
     border-color: #4CAF94;
     box-shadow: 0 0 0 0.25rem rgba(76, 175, 148, 0.2);
 }
+
+/* ==========================================================================
+   7b. Position page — icon-only action buttons (Edit / CV / Duplicate / Delete)
+   Resting state has NO border; the danger one keeps a red icon. A subtle
+   fill appears on hover so the buttons still read as clickable. Labels are
+   kept in markup as aria-label + title (visible text removed).
+   ========================================================================== */
+.position-page-actions .position-action-btn {
+    border: 0;
+    background: transparent;
+    color: var(--bs-secondary-color);
+    border-radius: var(--bs-border-radius-sm);
+    padding: 0.25rem 0.55rem;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.position-page-actions .position-action-btn:hover {
+    background: var(--bs-table-hover-bg);
+    color: var(--bs-body-color);
+}
+
+/* Destructive action: red icon in both states, warm tint on hover — but no
+   resting outline, consistent with its neighbours. */
+.position-page-actions .position-action-btn.position-action-danger {
+    color: var(--bs-danger);
+}
+
+.position-page-actions .position-action-btn.position-action-danger:hover {
+    background: rgba(var(--bs-danger-rgb), 0.12);
+    color: var(--bs-danger);
+}
+
+/* Keep a visible keyboard focus indicator (accessibility) without a border. */
+.position-page-actions .position-action-btn:focus-visible {
+    outline: 2px solid var(--bs-primary);
+    outline-offset: 1px;
+}
+
+/* Unviewed-CV counter badge on the position page CV icon — same red
+   rounded-pill language as the navbar badge, absolute in the top-right
+   corner of the icon-only button. */
+.position-page-actions .position-cv-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    font-size: 0.6rem;
+    font-weight: 700;
+    line-height: 1;
+    padding: 0.2rem 0.35rem;
+    min-width: 1rem;
+    text-align: center;
+}

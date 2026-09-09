@@ -7,6 +7,14 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
+    # Sender for transactional emails; set in .env.local (Gmail account must
+    # match the SMTP username — Gmail rejects a foreign From header).
+    mailer_from: '%env(MAILER_FROM)%'
+
+    # Yandex Maps: browser key is passed to the profile template; geocoder
+    # key is used server-side only. Both set in .env.local.
+    yandex_maps_js_api_key: '%env(YANDEX_MAPS_JS_API_KEY)%'
+    yandex_geocoder_api_key: '%env(YANDEX_GEOCODER_API_KEY)%'
 
 services:
     # default configuration for services in *this* file

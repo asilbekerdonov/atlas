@@ -95,8 +95,10 @@ class AttributeLibraryService
         }
 
         // Renaming to a name already used by another attribute is a conflict.
+        // Case-insensitive: "Python" and "python" are the same name, but the
+        // attribute itself is excluded so a pure case change stays allowed.
         if ($dto->name !== $attribute->getName()) {
-            $this->assertNameAvailable($dto->name);
+            $this->assertNameAvailable($dto->name, $attribute->getId());
         }
 
         $attribute->setName($dto->name);
@@ -269,9 +271,28 @@ class AttributeLibraryService
         return $this->em->getRepository(CandidateAttributeValue::class)->count(['attribute' => $attribute]) > 0;
     }
 
-    private function assertNameAvailable(string $name): void
+    /**
+     * Case-insensitive uniqueness: "Python" and "python" are the same name.
+     * The DB enforces it too via uniq_attribute_name_lower (LOWER(name)), so
+     * a concurrent insert still ends up as a UniqueConstraintViolationException
+     * → 409 in the controller. This pre-check exists only to fail fast with a
+     * clean domain exception instead of a raw DB error.
+     */
+    private function assertNameAvailable(string $name, ?int $exceptId = null): void
     {
-        $existing = $this->em->getRepository(Attribute::class)->findOneBy(['name' => $name]);
+        $qb = $this->em->createQueryBuilder()
+            ->select('a')
+            ->from(Attribute::class, 'a')
+            ->where('LOWER(a.name) = :name')
+            ->setParameter('name', mb_strtolower($name))
+            ->setMaxResults(1);
+
+        if ($exceptId !== null) {
+            $qb->andWhere('a.id <> :exceptId')->setParameter('exceptId', $exceptId);
+        }
+
+        $existing = $qb->getQuery()->getOneOrNullResult();
+
         if ($existing !== null) {
             throw new AttributeAlreadyExistsException($name);
         }

@@ -27,6 +27,10 @@
                     <button class="btn btn-primary w-100 fw-semibold" type="submit">{{ 'nav.login'|trans }}</button>
                 </form>
 
+                <p class="text-center text-muted small mb-0 mt-3">
+                    {{ 'login.no_account'|trans }} <a href="{{ path('app_register') }}">{{ 'login.register'|trans }}</a>
+                </p>
+
                 <div class="text-center text-muted small my-3">— or —</div>
 
                 <div class="d-grid gap-2">

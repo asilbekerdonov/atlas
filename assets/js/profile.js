@@ -1043,6 +1043,161 @@
     });
     
     
+    // ============================================
+    // LOCATION PICKER ON YANDEX MAPS (modal)
+    // The map only fills the same text input as manual typing — the profile
+    // stores plain text, nothing else changes in the data model.
+    // ============================================
+    
+    const pickLocationBtn = document.getElementById('pick-location-btn');
+    const locationModalEl = document.getElementById('locationMapModal');
+    const locationInput = document.querySelector('[data-autosave-field="location"]');
+    
+    if (pickLocationBtn && locationModalEl && locationInput) {
+        const locationMapEl = document.getElementById('location-map');
+        const locationStatus = document.getElementById('location-map-status');
+        const useLocationBtn = document.getElementById('use-location-btn');
+        const apiKey = pickLocationBtn.dataset.locationKey || '';
+        
+        // Default centre (Tashkent) — silent fallback when geolocation is
+        // denied or unavailable.
+        const DEFAULT_CENTER = [41.2995, 69.2401];
+        
+        let ymaps = null;
+        let map = null;
+        let placemark = null;
+        let currentAddress = null;
+        let geocodeInFlight = false;
+        
+        function setLocationStatus(text) {
+            if (locationStatus) {
+                locationStatus.textContent = text;
+            }
+        }
+        
+        // Lazy-load the Yandex Maps JS API on first modal open only — most
+        // users never touch the map, so the script is not fetched on every
+        // profile page load.
+        function loadYandexMaps() {
+            return new Promise(function (resolve, reject) {
+                if (window.ymaps) {
+                    resolve(window.ymaps);
+                    return;
+                }
+                const script = document.createElement('script');
+                script.src = 'https://api-maps.yandex.ru/2.1/?apikey=' + encodeURIComponent(apiKey) +
+                    '&lang=ru_RU&coordorder=latlong';
+                script.onload = function () { resolve(window.ymaps); };
+                script.onerror = function () { reject(new Error('yandex maps load failed')); };
+                document.head.appendChild(script);
+            });
+        }
+        
+        function reverseGeocode(lat, lng) {
+            if (geocodeInFlight) {
+                return;
+            }
+            geocodeInFlight = true;
+            setLocationStatus('...');
+            fetch('/api/profile/geocode', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify({ lat: lat, lng: lng })
+            }).then(function (r) {
+                return r.json().then(function (data) { return { ok: r.ok, data: data }; });
+            }).then(function (res) {
+                geocodeInFlight = false;
+                if (res.ok && res.data.address) {
+                    currentAddress = res.data.address;
+                    setLocationStatus(currentAddress);
+                    if (useLocationBtn) {
+                        useLocationBtn.disabled = false;
+                    }
+                } else {
+                    currentAddress = null;
+                    setLocationStatus('Address not found — try another spot.');
+                    if (useLocationBtn) {
+                        useLocationBtn.disabled = true;
+                    }
+                }
+            }).catch(function () {
+                geocodeInFlight = false;
+                currentAddress = null;
+                setLocationStatus('Geocoding failed — check the server key.');
+                if (useLocationBtn) {
+                    useLocationBtn.disabled = true;
+                }
+            });
+        }
+        
+        function initMap(centre) {
+            map = new ymaps.Map(locationMapEl, {
+                center: centre,
+                zoom: 12,
+                controls: ['zoomControl']
+            });
+            placemark = new ymaps.Placemark(centre, {}, { draggable: true });
+            map.geoObjects.add(placemark);
+            
+            // Geocode only when the marker is RELEASED (dragend), not on every
+            // pixel of the drag — the Geocoder free tier has a daily quota.
+            placemark.events.add('dragend', function () {
+                const coords = placemark.geometry.getCoordinates();
+                reverseGeocode(coords[0], coords[1]);
+            });
+            
+            // Opening the modal already picked a centre, so ask for the
+            // address of the initial position right away.
+            reverseGeocode(centre[0], centre[1]);
+        }
+        
+        pickLocationBtn.addEventListener('click', function () {
+            const bsModal = new bootstrap.Modal(locationModalEl);
+            bsModal.show();
+            
+            loadYandexMaps().then(function (api) {
+                ymaps = api;
+                ymaps.ready(function () {
+                    if (map) {
+                        // Modal reopened — keep the map as is.
+                        return;
+                    }
+                    
+                    // Try the browser geolocation first; fall back silently to
+                    // the default centre on denial / unavailability.
+                    const useDefault = function () { initMap(DEFAULT_CENTER); };
+                    if (!navigator.geolocation) {
+                        useDefault();
+                        return;
+                    }
+                    navigator.geolocation.getCurrentPosition(
+                        function (pos) {
+                            initMap([pos.coords.latitude, pos.coords.longitude]);
+                        },
+                        function () { useDefault(); },
+                        { enableHighAccuracy: false, timeout: 5000 }
+                    );
+                });
+            }).catch(function () {
+                setLocationStatus('Map failed to load — check the JS API key.');
+            });
+        });
+        
+        if (useLocationBtn) {
+            useLocationBtn.addEventListener('click', function () {
+                if (!currentAddress) {
+                    return;
+                }
+                locationInput.value = currentAddress;
+                // Let the existing autosave engine pick it up like a manual
+                // keystroke — same field, same save path.
+                locationInput.dispatchEvent(new Event('input', { bubbles: true }));
+                bootstrap.Modal.getInstance(locationModalEl).hide();
+            });
+        }
+    }
+    
+
     // Обработка ошибок сети
     window.addEventListener('online', function() {
         const badge = document.querySelector('.autosave-badge');

@@ -83,11 +83,18 @@ final class PositionController extends AbstractController
 
         $publishedCvIds = $this->positionViewService->getPublishedCvIdByAuthorIds($authorIds);
 
+        // Unviewed-CV counter for the CV-icon badge (recruiters only — the CV
+        // tab itself is recruiter-scoped, so candidates never need this query).
+        $newCvCount = $this->isGranted('ROLE_RECRUITER')
+            ? $this->cvRepository->countNewForRecruiterByPosition($position)
+            : 0;
+
         return $this->render('position/show.html.twig', [
             'position' => $position,
             'discussions' => $discussions,
             'hasAppliedCv' => $hasAppliedCv,
             'publishedCvIdByAuthorId' => $publishedCvIds,
+            'newCvCount' => $newCvCount,
         ]);
     }
 

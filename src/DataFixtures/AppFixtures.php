@@ -110,7 +110,7 @@ final class AppFixtures extends Fixture implements DependentFixtureInterface
         $sds->setLevel(Level::SENIOR);
         $sds->setFormat(Format::Remote);
         $sds->setPublic(true);
-        foreach ([$pythonTag, $ml, $pytorch] as $tag) {
+        foreach ([$pythonTag] as $tag) {
             $sds->addTag($tag);
         }
         $em->persist($sds);
@@ -134,19 +134,19 @@ final class AppFixtures extends Fixture implements DependentFixtureInterface
         $project1 = new Project($annaProfile, 'E-Commerce Data Pipeline', new DateTimeImmutable('2024-01-15'), 'ETL from the shop DB into the warehouse with Airflow and dbt.');
         $project1->addTag($sql);
         $project1->addTag($pythonTag);
-        $project1->addTag($airflow);
+        // $project1->addTag($airflow);
         $project1->setEndDate(new DateTimeImmutable('2025-03-01'));
         $em->persist($project1);
 
         $project2 = new Project($annaProfile, 'Customer Churn R Model', new DateTimeImmutable('2023-02-01'), 'Logistic regression and survival analysis in R.');
         $project2->addTag($r);
-        $project2->addTag($statistics);
+        // $project2->addTag($statistics);
         $project2->setEndDate(new DateTimeImmutable('2024-01-15'));
         $em->persist($project2);
 
         $project3 = new Project($annaProfile, 'Wordpress Blog Site', new DateTimeImmutable('2022-06-01'), 'Company blog built with PHP and custom CSS.');
-        $project3->addTag($php);
-        $project3->addTag($css);
+        // $project3->addTag($php);
+        // $project3->addTag($css);
         $project3->setEndDate(new DateTimeImmutable('2023-01-15'));
         $em->persist($project3);
 
@@ -166,8 +166,8 @@ final class AppFixtures extends Fixture implements DependentFixtureInterface
 
         $johnProject = new Project($johnProfile, 'NLP Chatbot', new DateTimeImmutable('2024-05-01'), 'Transformer-based chatbot fine-tuned with PyTorch.');
         $johnProject->addTag($pythonTag);
-        $johnProject->addTag($pytorch);
-        $johnProject->addTag($ml);
+        // $johnProject->addTag($pytorch);
+        // $johnProject->addTag($ml);
         $em->persist($johnProject);
 
         $johnCv = new Cv($john, $sds);

@@ -38,8 +38,16 @@
                     </div>
                     <div>
                         <label class="form-label">{{ 'profile.location'|trans }}</label>
-                        <input class="form-control" data-autosave-field="location"
-                               value="{{ profile.location ?? '' }}" {{ isOwner ? '' : 'disabled' }}>
+                        <div class="input-group">
+                            <input class="form-control" data-autosave-field="location"
+                                   value="{{ profile.location ?? '' }}" {{ isOwner ? '' : 'disabled' }}>
+                            {% if isOwner %}
+                                <button type="button" class="btn btn-outline-secondary" id="pick-location-btn"
+                                        data-location-key="{{ yandexMapsApiKey }}">
+                                    <i class="bi bi-geo-alt"></i> {{ 'profile.pick_on_map'|trans }}
+                                </button>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
                 <div class="col-md-6">
@@ -260,6 +268,31 @@
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ 'common.cancel'|trans }}</button>
                     <button type="button" class="btn btn-primary" id="save-avatar-btn">
                         <i class="bi bi-check-lg"></i> {{ 'profile.save_and_continue'|trans }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Модалка выбора локации через Яндекс.Карты: карта лишь заполняет тот же
+       текстовый input[data-autosave-field="location"], что и ручной ввод. #}
+    <div class="modal fade" id="locationMapModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">{{ 'profile.pick_on_map'|trans }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="location-map" class="location-map-container"></div>
+                    <p class="small text-muted mt-2 mb-0 text-center" id="location-map-status">
+                        {{ 'profile.map_drag_hint'|trans }}
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ 'common.cancel'|trans }}</button>
+                    <button type="button" class="btn btn-primary" id="use-location-btn" disabled>
+                        <i class="bi bi-check-lg"></i> {{ 'profile.use_this_address'|trans }}
                     </button>
                 </div>
             </div>

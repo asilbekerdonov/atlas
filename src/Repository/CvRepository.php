@@ -64,6 +64,25 @@ class CvRepository extends ServiceEntityRepository
     }
 
     /**
+     * Unviewed published CVs for ONE position — same "new" semantics as
+     * countNewForRecruiter(), scoped to the given position. Drives the small
+     * badge on the CV icon of the position page.
+     */
+    public function countNewForRecruiterByPosition(Position $position): int
+    {
+        return (int) $this->createQueryBuilder('c')
+            ->select('COUNT(c.id)')
+            ->where('c.position = :position')
+            ->andWhere('c.status = :published')
+            ->andWhere('c.isVisible = true')
+            ->andWhere('c.viewedByRecruiterAt IS NULL')
+            ->setParameter('position', $position)
+            ->setParameter('published', CvStatus::PUBLISHED)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
      * Search published CVs by the candidate's first/last name.
      *
      * @return list<Cv>

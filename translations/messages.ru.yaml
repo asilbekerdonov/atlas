@@ -5,6 +5,9 @@ nav.attributes: Библиотека атрибутов
 nav.new_position: Создать вакансию
 nav.users: Пользователи
 nav.login: Войти
+nav.register: Регистрация
+login.no_account: Нет аккаунта?
+login.register: Регистрация
 nav.logout: Выйти
 nav.search_placeholder: Поиск вакансий и CV…
 nav.theme.dark: Тёмная тема
@@ -91,6 +94,9 @@ profile.cvs: CV
 profile.first_name: Имя
 profile.last_name: Фамилия
 profile.location: Локация
+profile.pick_on_map: Указать на карте
+profile.map_drag_hint: Перетащите метку на нужное место, затем нажмите «Использовать этот адрес»
+profile.use_this_address: Использовать этот адрес
 profile.avatar: Аватар
 profile.upload_avatar: Перетащите изображение сюда или нажмите для загрузки (JPEG/PNG/WebP, до 5 МБ)
 profile.add_attribute: Добавить атрибут…
