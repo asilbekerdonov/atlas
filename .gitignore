@@ -1,20 +1,35 @@
+# Создать глобальный .gitignore
+cat > ~/.gitignore_global << 'EOF'
+# ============================================
+# Environment files - НИКОГДА не коммитить!
+# ============================================
+.env
+.env.*
+!.env.example
+!.env.test
 
-###> symfony/framework-bundle ###
-/.env.local
-/.env.local.php
-/.env.*.local
-/config/secrets/prod/prod.decrypt.private.php
-/public/bundles/
-/var/
-/vendor/
-###< symfony/framework-bundle ###
+# ============================================
+# IDE и редакторы
+# ============================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
 
-###> phpunit/phpunit ###
-/phpunit.xml
-/.phpunit.cache/
-###< phpunit/phpunit ###
+# ============================================
+# Логи
+# ============================================
+*.log
+var/log/
+logs/
 
-###> symfony/asset-mapper ###
-/public/assets/
-/assets/vendor/
-###< symfony/asset-mapper ###
+# ============================================
+# Системные файлы
+# ============================================
+*.pid
+*.seed
+*.pid.lock
+EOF
