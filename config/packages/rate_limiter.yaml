@@ -1,0 +1,10 @@
+framework:
+    rate_limiter:
+        media_presign_user:
+            policy: 'fixed_window'
+            limit: 10
+            interval: '1 hour'
+        media_presign_ip:
+            policy: 'fixed_window'
+            limit: 10
+            interval: '1 hour'

@@ -843,6 +843,23 @@
     if (saveBtn) {
         saveBtn.addEventListener('click', async function() {
             if (!editorImg || !currentFile || isUploading) return;
+
+            const maxAvatarSize = 5 * 1024 * 1024;
+            const allowedAvatarTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+            if (currentFile.size > maxAvatarSize) {
+                alert('Размер изображения не должен превышать 5 МБ.');
+                console.warn('Avatar upload rejected: file exceeds 5 MB.', {
+                    size: currentFile.size,
+                });
+                return;
+            }
+            if (!allowedAvatarTypes.includes(currentFile.type)) {
+                alert('Поддерживаются только изображения JPEG, PNG, WebP или GIF.');
+                console.warn('Avatar upload rejected: unsupported MIME type.', {
+                    type: currentFile.type,
+                });
+                return;
+            }
             
             try {
                 isUploading = true;
@@ -954,17 +971,24 @@
             });
             
             if (!uploadResponse.ok) {
-                throw new Error('Upload failed');
+                let errorMessage = 'Upload failed';
+                try {
+                    const errorResult = await uploadResponse.json();
+                    errorMessage = errorResult.error?.message || errorResult.message || errorMessage;
+                } catch (parseError) {
+                    // Keep the upload failure when Cloudinary returns a non-JSON response.
+                }
+                throw new Error(errorMessage);
             }
-            
+
+            const uploadResult = await uploadResponse.json();
+            if (!uploadResult.secure_url) {
+                throw new Error('Cloudinary did not return an avatar URL');
+            }
+
             updateProgress(70);
             
-            let fileUrl = presignData.secure_url || presignData.url;
-            
-            if (!fileUrl || fileUrl === presignData.url) {
-                const path = presignData.key || presignData.fields?.key || '';
-                fileUrl = presignData.uploadUrl + '/' + path;
-            }
+            const fileUrl = uploadResult.secure_url;
             
             updateProgress(85);
             

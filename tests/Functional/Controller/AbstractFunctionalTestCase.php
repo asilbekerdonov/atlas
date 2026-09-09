@@ -81,9 +81,12 @@ abstract class AbstractFunctionalTestCase extends WebTestCase
     }
 
     /** @param array<string, mixed> $payload */
-    protected function jsonRequest(KernelBrowser $client, string $method, string $uri, array $payload): \Symfony\Component\HttpFoundation\Response
+    protected function jsonRequest(KernelBrowser $client, string $method, string $uri, array $payload, array $server = []): \Symfony\Component\HttpFoundation\Response
     {
-        $client->request($method, $uri, [], [], ['CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json'], json_encode($payload, JSON_THROW_ON_ERROR));
+        $client->request($method, $uri, [], [], array_merge([
+            'CONTENT_TYPE' => 'application/json',
+            'HTTP_ACCEPT' => 'application/json',
+        ], $server), json_encode($payload, JSON_THROW_ON_ERROR));
 
         return $client->getResponse();
     }
