@@ -86,3 +86,13 @@
     background: #4CAF94 !important;
     color: #08120F !important;
 }
+
+.tags-cell {
+    display: flex;
+    gap: .25rem;
+    flex-wrap: nowrap;
+    overflow: hidden;
+    min-height: 1.75rem;
+    align-items: center;
+}
+

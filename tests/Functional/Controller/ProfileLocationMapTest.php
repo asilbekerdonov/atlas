@@ -36,8 +36,7 @@ final class ProfileLocationMapTest extends AbstractFunctionalTestCase
         $this->em->persist($profile);
         $this->em->flush();
 
-        // Admins may VIEW any profile, but are never its owner — the map
-        // button/modal must stay hidden (owner-only editor).
+        // Admins may view any profile, but non-owner profiles remain read-only.
         $admin = $this->createUser('map-admin@example.com', UserRole::ROLE_ADMIN);
         $this->client->loginUser($admin);
         $this->client->request('GET', '/profile/' . $profile->getId());

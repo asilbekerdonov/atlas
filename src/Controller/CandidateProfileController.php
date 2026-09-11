@@ -9,15 +9,19 @@ use App\DTO\ProfileAutosaveDTO;
 use App\DTO\Request\ProfileAutosaveRequestDTO;
 use App\Entity\CandidateProfile;
 use App\Enum\UserRole;
+use App\Exception\AddressNotFoundException;
+use App\Exception\GeocoderNotConfiguredException;
+use App\Exception\GeocoderRequestFailedException;
+use App\Exception\InvalidCoordinatesException;
 use App\Exception\OptimisticLockConflictException;
 use App\Security\Voter\ProfileVoter;
+use App\Service\Geo\YandexGeocoderService;
+use App\Service\Profile\CandidateProfileService;
 use App\Service\Profile\ProfileAutosaveService;
 use App\Service\Project\ProjectService;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
@@ -31,8 +35,9 @@ use Symfony\Component\Routing\Attribute\Route;
 final class CandidateProfileController extends AbstractController
 {
     public function __construct(
-        private readonly EntityManagerInterface $em,
+        private readonly CandidateProfileService $candidateProfileService,
         private readonly ProjectService $projectService,
+        private readonly YandexGeocoderService $geocoderService,
     ) {
     }
 
@@ -82,14 +87,7 @@ final class CandidateProfileController extends AbstractController
             throw $this->createAccessDeniedException('Only candidates have a profile to edit.');
         }
 
-        $profile = $user->getProfile();
-        if ($profile === null) {
-            $profile = new CandidateProfile($user, 'Candidate', '');
-            $this->em->persist($profile);
-            $this->em->flush();
-        }
-
-        return $profile;
+        return $this->candidateProfileService->getOrCreateFor($user);
     }
 
     #[Route('/profile/{id}', name: 'profile_show', methods: ['GET'], requirements: ['id' => '\d+'])]
@@ -107,7 +105,8 @@ final class CandidateProfileController extends AbstractController
         ProfileAutosaveService $autosaveService,
         #[Autowire(service: 'limiter.profile_autosave')] RateLimiterFactory $autosaveLimiter,
     ): JsonResponse {
-        
+        // TODO: This endpoint always saves the authenticated user's profile.
+        // Admin editing another profile currently cannot autosave that target.
         $limiter = $autosaveLimiter->create($this->getUser()->getUserIdentifier())->consume(1);
         if (!$limiter->isAccepted()) {
             throw new TooManyRequestsHttpException((int) $limiter->getRetryAfter()->getTimestamp() - time());
@@ -174,49 +173,21 @@ final class CandidateProfileController extends AbstractController
      * every pixel — to stay inside the free daily quota.
      */
     #[Route('/api/profile/geocode', name: 'profile_geocode', methods: ['POST'])]
-    public function reverseGeocode(Request $request, HttpClientInterface $httpClient): JsonResponse
+    public function reverseGeocode(Request $request): JsonResponse
     {
         $payload = json_decode((string) $request->getContent(), true);
         $lat = isset($payload['lat']) ? (float) $payload['lat'] : 0.0;
         $lng = isset($payload['lng']) ? (float) $payload['lng'] : 0.0;
 
-        if ($lat < -90.0 || $lat > 90.0 || $lng < -180.0 || $lng > 180.0) {
-            return new JsonResponse(['error' => 'invalid_coordinates'], Response::HTTP_UNPROCESSABLE_ENTITY);
-        }
-
-        $apiKey = $this->getParameter('yandex_geocoder_api_key');
-        if ($apiKey === '') {
-            return new JsonResponse(['error' => 'geocoder_not_configured'], Response::HTTP_SERVICE_UNAVAILABLE);
-        }
-
         try {
-            // Yandex Geocoder HTTP API (current docs): /v1, coordinates as
-            // "longitude,latitude", lang is required.
-            $response = $httpClient->request('GET', 'https://geocode-maps.yandex.ru/v1', [
-                'query' => [
-                    'format' => 'json',
-                    'apikey' => $apiKey,
-                    'geocode' => sprintf('%.6f,%.6f', $lng, $lat),
-                    'lang' => 'ru_RU',
-                    'results' => '1',
-                ],
-                'timeout' => 5,
-            ]);
-            $data = $response->toArray();
-        } catch (\Throwable $e) {
+            $address = $this->geocoderService->reverseGeocode($lat, $lng);
+        } catch (InvalidCoordinatesException) {
+            return new JsonResponse(['error' => 'invalid_coordinates'], Response::HTTP_UNPROCESSABLE_ENTITY);
+        } catch (GeocoderNotConfiguredException) {
+            return new JsonResponse(['error' => 'geocoder_not_configured'], Response::HTTP_SERVICE_UNAVAILABLE);
+        } catch (GeocoderRequestFailedException) {
             return new JsonResponse(['error' => 'geocoder_request_failed'], Response::HTTP_BAD_GATEWAY);
-        }
-
-        $feature = $data['response']['GeoObjectCollection']['featureMember'][0]['GeoObject'] ?? null;
-        if ($feature === null) {
-            return new JsonResponse(['error' => 'address_not_found'], Response::HTTP_NOT_FOUND);
-        }
-
-        $address = $feature['metaDataProperty']['GeocoderMetaData']['text']
-            ?? $feature['name']
-            ?? null;
-
-        if ($address === null || $address === '') {
+        } catch (AddressNotFoundException) {
             return new JsonResponse(['error' => 'address_not_found'], Response::HTTP_NOT_FOUND);
         }
 

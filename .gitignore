@@ -1,5 +1,3 @@
-# Создать глобальный .gitignore
-cat > ~/.gitignore_global << 'EOF'
 # ============================================
 # Environment files - НИКОГДА не коммитить!
 # ============================================
@@ -7,6 +5,18 @@ cat > ~/.gitignore_global << 'EOF'
 .env.*
 !.env.example
 !.env.test
+
+# ============================================
+# Composer / Node зависимости и сборка
+# ============================================
+/vendor/
+/node_modules/
+/public/build/
+
+# ============================================
+# Symfony var/ (кэш, логи, внутренние пулы)
+# ============================================
+/var/
 
 # ============================================
 # IDE и редакторы
@@ -32,4 +42,13 @@ logs/
 *.pid
 *.seed
 *.pid.lock
-EOF
+
+
+# PHPUnit cache
+/.phpunit.cache/
+
+# Composer assets
+/assets/vendor/
+
+# Public compiled assets
+/public/assets/

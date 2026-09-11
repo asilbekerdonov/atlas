@@ -5,47 +5,37 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Exception\UserBlockException;
 use App\Exception\UserRoleChangeException;
-use App\Repository\PositionRepository;
+use App\Repository\UserRepository;
+use App\Service\Admin\UserBlockService;
 use App\Service\Admin\UserRoleService;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-/** Admin panel: user directory with block/unblock and role changes. */
 final class AdminController extends AbstractController
 {
-    public function __construct(private readonly EntityManagerInterface $em)
-    {
-    }
-
     #[Route('/admin/users', name: 'admin_users', methods: ['GET'])]
-    public function users(PositionRepository $positionRepository): Response
+    public function users(UserRepository $userRepository): Response
     {
-        $users = $this->em->createQueryBuilder()
-            ->select('u')
-            ->from(User::class, 'u')
-            ->orderBy('u.createdAt', 'DESC')
-            ->getQuery()
-            ->getResult();
-
-        return $this->render('admin/users.html.twig', ['users' => $users]);
+        return $this->render('admin/users.html.twig', [
+            'users' => $userRepository->findAllOrderedByCreatedAtDesc(),
+        ]);
     }
 
     #[Route('/admin/users/{id}/block', name: 'admin_user_block', methods: ['POST'], requirements: ['id' => '\d+'])]
-    public function toggleBlock(User $user): RedirectResponse
+    public function toggleBlock(User $user, UserBlockService $userBlockService): RedirectResponse
     {
-        if ($user->getId() === $this->getUser()->getId()) {
-            $this->addFlash('error', 'You cannot block yourself.');
-        } elseif ($user->isBlocked()) {
-            $user->unblock();
-        } else {
-            $user->block();
+        try {
+            $userBlockService->toggle($user, $this->getUser());
+            $this->addFlash('success', $user->isBlocked()
+                ? 'User blocked.'
+                : 'User unblocked.');
+        } catch (UserBlockException $e) {
+            $this->addFlash('error', $e->getMessage());
         }
-
-        $this->em->flush();
 
         return $this->redirectToRoute('admin_users');
     }
@@ -53,15 +43,11 @@ final class AdminController extends AbstractController
     #[Route('/admin/users/{id}/promote', name: 'admin_user_promote', methods: ['POST'], requirements: ['id' => '\d+'])]
     public function promote(User $user, UserRoleService $userRoleService): RedirectResponse
     {
-        if ($user->getId() === $this->getUser()->getId()) {
-            $this->addFlash('error', 'You cannot change your own role.');
-        } else {
-            try {
-                $userRoleService->promote($user);
-                $this->addFlash('success', 'User promoted to recruiter.');
-            } catch (UserRoleChangeException $e) {
-                $this->addFlash('error', $e->getMessage());
-            }
+        try {
+            $userRoleService->promote($user);
+            $this->addFlash('success', 'User promoted to recruiter.');
+        } catch (UserRoleChangeException $e) {
+            $this->addFlash('error', $e->getMessage());
         }
 
         return $this->redirectToRoute('admin_users');
@@ -70,15 +56,24 @@ final class AdminController extends AbstractController
     #[Route('/admin/users/{id}/demote', name: 'admin_user_demote', methods: ['POST'], requirements: ['id' => '\d+'])]
     public function demote(User $user, UserRoleService $userRoleService): RedirectResponse
     {
-        if ($user->getId() === $this->getUser()->getId()) {
-            $this->addFlash('error', 'You cannot change your own role.');
-        } else {
-            try {
-                $userRoleService->demote($user);
-                $this->addFlash('success', 'User demoted to candidate.');
-            } catch (UserRoleChangeException $e) {
-                $this->addFlash('error', $e->getMessage());
-            }
+        try {
+            $userRoleService->demote($user);
+            $this->addFlash('success', 'User demoted to candidate.');
+        } catch (UserRoleChangeException $e) {
+            $this->addFlash('error', $e->getMessage());
+        }
+
+        return $this->redirectToRoute('admin_users');
+    }
+
+    #[Route('/admin/users/{id}/revoke-admin', name: 'admin_user_revoke_admin', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function revokeAdmin(User $user, UserRoleService $userRoleService): RedirectResponse
+    {
+        try {
+            $userRoleService->revokeAdmin($user, $this->getUser());
+            $this->addFlash('success', 'Administrator role removed.');
+        } catch (UserRoleChangeException $e) {
+            $this->addFlash('error', $e->getMessage());
         }
 
         return $this->redirectToRoute('admin_users');

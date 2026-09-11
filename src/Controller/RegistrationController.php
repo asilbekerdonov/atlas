@@ -6,39 +6,21 @@ namespace App\Controller;
 
 use App\DTO\Request\RegisterRequestDTO;
 use App\Entity\User;
-use App\Enum\UserRole;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Exception\AccountNotPendingException;
+use App\Exception\RegistrationValidationException;
+use App\Service\Auth\RegistrationService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Exception\ExpiredSignedUriException;
 use Symfony\Component\HttpFoundation\Exception\SignedUriException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\UriSigner;
-use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\Mime\Email;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-/**
- * Minimal email registration with a signed, expiring verification link.
- *
- * The link is produced by Symfony's UriSigner (HMAC over the absolute URL
- * plus an _expiration query parameter), so no random token needs to be
- * stored on the user row. isBlocked doubles as the "not yet verified" flag:
- * UserChecker refuses logins for blocked accounts until verify() unblocks.
- */
 final class RegistrationController extends AbstractController
 {
-    /** Link lifetime, matching the verify-email-bundle default of 1 hour. */
-    private const int VERIFY_TTL_SECONDS = 3600;
-
     public function __construct(
-        private readonly EntityManagerInterface $em,
-        private readonly UserPasswordHasherInterface $passwordHasher,
-        private readonly ValidatorInterface $validator,
-        private readonly MailerInterface $mailer,
+        private readonly RegistrationService $registrationService,
         private readonly UriSigner $uriSigner,
     ) {
     }
@@ -55,32 +37,13 @@ final class RegistrationController extends AbstractController
         $errors = [];
 
         if ($request->isMethod('POST')) {
-            $violations = $this->validator->validate($dto);
-            foreach ($violations as $violation) {
-                $errors[] = $violation->getMessage();
-            }
-
-            if ($dto->password !== $dto->confirmPassword) {
-                $errors[] = 'Passwords do not match.';
-            }
-
-            $existing = $this->em->getRepository(User::class)->findOneBy(['email' => $dto->email]);
-            if ($existing !== null) {
-                $errors[] = 'An account with this email already exists.';
-            }
-
-            if ($errors === []) {
-                $user = new User($dto->email, [UserRole::ROLE_CANDIDATE->value]);
-                $user->setPassword($this->passwordHasher->hashPassword($user, $dto->password));
-                $user->block(); // login refused until the email is verified
-                $this->em->persist($user);
-                $this->em->flush();
-
-                $this->sendVerificationEmail($user);
-
+            try {
+                $this->registrationService->register($dto);
                 $this->addFlash('success', 'Check your email to confirm your account.');
 
                 return $this->redirectToRoute('app_login');
+            } catch (RegistrationValidationException $e) {
+                $errors = $e->getErrors();
             }
         }
 
@@ -97,12 +60,12 @@ final class RegistrationController extends AbstractController
         // is stale, was tampered with, or got replayed after being consumed.
         try {
             $this->uriSigner->verify($request);
-        } catch (ExpiredSignedUriException $e) {
+        } catch (ExpiredSignedUriException) {
             return $this->render('registration/verify_error.html.twig', [
                 'reason' => 'expired',
                 'email' => $user->getEmail(),
             ], new Response(null, Response::HTTP_GONE));
-        } catch (SignedUriException $e) {
+        } catch (SignedUriException) {
             return $this->render('registration/verify_error.html.twig', [
                 'reason' => 'invalid',
                 'email' => $user->getEmail(),
@@ -110,14 +73,11 @@ final class RegistrationController extends AbstractController
         }
 
         // Already verified → friendly notice instead of a confusing error.
-        if (!$user->isBlocked()) {
+        if (!$this->registrationService->verifyEmail($user)) {
             $this->addFlash('success', 'Your email was already confirmed.');
 
             return $this->redirectToRoute('app_login');
         }
-
-        $user->unblock();
-        $this->em->flush();
 
         $this->addFlash('success', 'Email confirmed. You can now log in.');
 
@@ -128,35 +88,14 @@ final class RegistrationController extends AbstractController
     public function resend(Request $request): Response
     {
         $email = (string) $request->request->get('email', '');
-        $user = $this->em->getRepository(User::class)->findOneBy(['email' => $email]);
 
-        if ($user !== null && $user->isBlocked()) {
-            $this->sendVerificationEmail($user);
+        try {
+            $this->registrationService->resendVerificationEmail($email);
             $this->addFlash('success', 'A new confirmation link has been sent.');
-        } else {
-            $this->addFlash('error', 'No pending account found for this email.');
+        } catch (AccountNotPendingException $e) {
+            $this->addFlash('error', $e->getMessage());
         }
 
         return $this->redirectToRoute('app_login');
-    }
-
-    private function sendVerificationEmail(User $user): void
-    {
-        $route = $this->generateUrl(
-            'app_register_verify',
-            ['id' => $user->getId()],
-            UrlGeneratorInterface::ABSOLUTE_URL,
-        );
-        // HMAC-signed URL carrying its own expiration — no stored token.
-        $url = $this->uriSigner->sign($route, time() + self::VERIFY_TTL_SECONDS);
-
-        $email = (new Email())
-            ->from($this->getParameter('mailer_from'))
-            ->to($user->getEmail())
-            ->subject('Confirm your email — ATLAS')
-            ->html($this->renderView('emails/verify.html.twig', ['url' => $url]))
-            ->text('Confirm your ATLAS account: ' . $url);
-
-        $this->mailer->send($email);
     }
 }

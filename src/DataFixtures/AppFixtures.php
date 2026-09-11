@@ -53,10 +53,11 @@ final class AppFixtures extends Fixture implements DependentFixtureInterface
     {
         // ------------------------------------------------------------------ Users
         $admin = $this->user('admin@platform.local', UserRole::ROLE_ADMIN);
+        $admin2 = $this->user('admin2@platform.local', UserRole::ROLE_ADMIN);
         $sarah = $this->user('recruiter@acme.com', UserRole::ROLE_RECRUITER);
         $anna = $this->user('candidate.anna@mail.com', UserRole::ROLE_CANDIDATE);
         $john = $this->user('candidate.john@mail.com', UserRole::ROLE_CANDIDATE);
-        foreach ([$admin, $sarah, $anna, $john] as $user) {
+        foreach ([$admin, $admin2, $sarah, $anna, $john] as $user) {
             $em->persist($user);
         }
 

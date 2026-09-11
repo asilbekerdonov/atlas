@@ -13,6 +13,9 @@
             <button type="button" class="btn btn-outline-secondary btn-sm" data-action="demote" data-url-prefix="/admin/users/" data-required-role="ROLE_RECRUITER" data-confirm="{{ 'admin.confirm_demote'|trans }}" disabled>
                 <i class="bi bi-arrow-down"></i> {{ 'admin.demote'|trans }}
             </button>
+            <button type="button" class="btn btn-outline-danger btn-sm" data-action="revoke-admin" data-url-prefix="/admin/users/" data-required-role="ROLE_ADMIN" data-confirm="Remove administrator role?" disabled>
+                <i class="bi bi-person-dash"></i> Remove admin
+            </button>
             <button type="button" class="btn btn-outline-warning btn-sm" data-action="block" data-url-prefix="/admin/users/" disabled>
                 <i class="bi bi-person-slash"></i> {{ 'admin.block_unblock'|trans }}
             </button>
@@ -25,9 +28,15 @@
                 </thead>
                 <tbody>
                 {% for user in users %}
-                    <tr data-row-id="{{ user.id }}" data-role="{{ user.primaryRole.value }}">
+                    <tr data-row-id="{{ user.id }}" data-role="{{ user.primaryRole.value }}" data-own-row="{{ app.user and user.id == app.user.id ? 'true' : 'false' }}">
                         <td><input type="checkbox" class="form-check-input" aria-label="Select"></td>
-                        <td>{{ user.email }}</td>
+                        <td>
+                            {% if user.profile is not null %}
+                                <a href="{{ path('profile_show', {id: user.profile.id}) }}">{{ user.email }}</a>
+                            {% else %}
+                                {{ user.email }}
+                            {% endif %}
+                        </td>
                         <td>{% for role in user.roles %}<span class="badge text-bg-secondary">{{ role }}</span> {% endfor %}</td>
                         <td>{% if user.isBlocked %}<span class="badge text-bg-danger">{{ 'admin.blocked_badge'|trans }}</span>{% else %}<span class="badge text-bg-success">{{ 'admin.active'|trans }}</span>{% endif %}</td>
                         <td>{{ user.createdAt|date('Y-m-d') }}</td>

@@ -1,6 +1,7 @@
 {% extends 'base.html.twig' %}
 
 {% set isOwner = app.user is not null and app.user.id == profile.user.id %}
+{% set canEdit = isOwner %}
 
 {% block title %}{{ 'nav.profile'|trans }}{% endblock %}
 
@@ -29,19 +30,19 @@
                     <div class="mb-3">
                         <label class="form-label">{{ 'profile.first_name'|trans }}</label>
                         <input class="form-control" data-autosave-field="firstName"
-                               value="{{ profile.firstName }}" {{ isOwner ? '' : 'disabled' }}>
+                               value="{{ profile.firstName }}" {{ canEdit ? '' : 'disabled' }}>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">{{ 'profile.last_name'|trans }}</label>
                         <input class="form-control" data-autosave-field="lastName"
-                               value="{{ profile.lastName }}" {{ isOwner ? '' : 'disabled' }}>
+                               value="{{ profile.lastName }}" {{ canEdit ? '' : 'disabled' }}>
                     </div>
                     <div>
                         <label class="form-label">{{ 'profile.location'|trans }}</label>
                         <div class="input-group">
                             <input class="form-control" data-autosave-field="location"
-                                   value="{{ profile.location ?? '' }}" {{ isOwner ? '' : 'disabled' }}>
-                            {% if isOwner %}
+                                   value="{{ profile.location ?? '' }}" {{ canEdit ? '' : 'disabled' }}>
+                            {% if canEdit %}
                                 <button type="button" class="btn btn-outline-secondary" id="pick-location-btn"
                                         data-location-key="{{ yandexMapsApiKey }}">
                                     <i class="bi bi-geo-alt"></i> {{ 'profile.pick_on_map'|trans }}
@@ -52,7 +53,7 @@
                 </div>
                 <div class="col-md-6">
                     <label class="form-label">{{ 'profile.avatar'|trans }}</label>
-                    {% if isOwner %}
+                    {% if canEdit %}
                         <div class="avatar-upload-zone" id="avatar-drop">
                             {% if profile.avatarUrl %}
                                 <img src="{{ profile.avatarUrl }}" class="avatar-image" alt="avatar">
@@ -84,7 +85,7 @@
 
         {# ---------- Info ---------- #}
         <div class="tab-pane fade" id="tab-info">
-            {% if isOwner %}
+            {% if canEdit %}
                 <div class="input-group mb-3" style="max-width: 420px">
                     <input class="form-control" id="attribute-search" placeholder="{{ 'profile.add_attribute'|trans }}" autocomplete="off">
                     <button class="btn btn-outline-secondary" id="attribute-add" type="button"><i class="bi bi-plus-lg"></i></button>
@@ -104,39 +105,39 @@
                             </div>
                             <div class="col">
                                 {% if attr.dataType.value == 'ONE_OF_MANY' %}
-                                    <select class="form-select" data-attribute-id="{{ attr.id }}" {{ isOwner ? '' : 'disabled' }}>
+                                    <select class="form-select" data-attribute-id="{{ attr.id }}" {{ canEdit ? '' : 'disabled' }}>
                                         <option value="">—</option>
                                         {% for option in attr.options %}
                                             <option value="{{ option.id }}" {{ value.valueOption and value.valueOption.id == option.id ? 'selected' : '' }}>{{ option.label }}</option>
                                         {% endfor %}
                                     </select>
                                 {% elseif attr.dataType.value == 'BOOLEAN' %}
-                                    <select class="form-select" data-attribute-id="{{ attr.id }}" {{ isOwner ? '' : 'disabled' }}>
+                                    <select class="form-select" data-attribute-id="{{ attr.id }}" {{ canEdit ? '' : 'disabled' }}>
                                         <option value="">—</option>
                                         <option value="true" {{ value.valueBoolean is same as(true) ? 'selected' : '' }}>{{ 'common.yes'|trans }}</option>
                                         <option value="false" {{ value.valueBoolean is same as(false) ? 'selected' : '' }}>{{ 'common.no'|trans }}</option>
                                     </select>
                                 {% elseif attr.dataType.value == 'DATE' %}
                                     <input type="date" class="form-control" data-attribute-id="{{ attr.id }}"
-                                           value="{{ value.valueDate ? value.valueDate|date('Y-m-d') : '' }}" {{ isOwner ? '' : 'disabled' }}>
+                                           value="{{ value.valueDate ? value.valueDate|date('Y-m-d') : '' }}" {{ canEdit ? '' : 'disabled' }}>
                                 {% elseif attr.dataType.value == 'PERIOD' %}
                                     <div class="d-flex gap-2">
                                         <input type="date" class="form-control" data-attribute-id="{{ attr.id }}" data-attr-part="start"
-                                               value="{{ value.valueDateRangeStart ? value.valueDateRangeStart|date('Y-m-d') : '' }}" {{ isOwner ? '' : 'disabled' }}>
+                                               value="{{ value.valueDateRangeStart ? value.valueDateRangeStart|date('Y-m-d') : '' }}" {{ canEdit ? '' : 'disabled' }}>
                                         <input type="date" class="form-control" data-attribute-id="{{ attr.id }}" data-attr-part="end"
-                                               value="{{ value.valueDateRangeEnd ? value.valueDateRangeEnd|date('Y-m-d') : '' }}" {{ isOwner ? '' : 'disabled' }}>
+                                               value="{{ value.valueDateRangeEnd ? value.valueDateRangeEnd|date('Y-m-d') : '' }}" {{ canEdit ? '' : 'disabled' }}>
                                     </div>
                                 {% elseif attr.dataType.value == 'NUMERIC' %}
                                     <input type="number" step="0.01" class="form-control" data-attribute-id="{{ attr.id }}"
-                                           value="{{ value.valueNumeric ?? '' }}" {{ isOwner ? '' : 'disabled' }}>
+                                           value="{{ value.valueNumeric ?? '' }}" {{ canEdit ? '' : 'disabled' }}>
                                 {% elseif attr.dataType.value == 'TEXT' %}
-                                    <textarea class="form-control" rows="2" data-attribute-id="{{ attr.id }}" {{ isOwner ? '' : 'disabled' }}>{{ value.valueText ?? '' }}</textarea>
+                                    <textarea class="form-control" rows="2" data-attribute-id="{{ attr.id }}" {{ canEdit ? '' : 'disabled' }}>{{ value.valueText ?? '' }}</textarea>
                                 {% else %}
                                     <input class="form-control" data-attribute-id="{{ attr.id }}"
-                                           value="{{ value.valueString ?? '' }}" {{ isOwner ? '' : 'disabled' }}>
+                                           value="{{ value.valueString ?? '' }}" {{ canEdit ? '' : 'disabled' }}>
                                 {% endif %}
                             </div>
-                            {% if isOwner %}
+                            {% if canEdit %}
                                 <div class="col-auto">
                                     <button type="button" class="btn btn-sm btn-outline-danger" data-remove-value="{{ value.id }}"
                                             data-attribute-name="{{ attr.name }}" title="{{ 'profile.remove_value'|trans }}">
@@ -153,7 +154,7 @@
 
         {# ---------- Projects ---------- #}
         <div class="tab-pane fade" id="tab-projects">
-            {% if isOwner %}
+            {% if canEdit %}
                 <button class="btn btn-primary btn-sm mb-3" data-bs-toggle="collapse" data-bs-target="#project-form">
                     <i class="bi bi-plus-lg"></i> {{ 'profile.new_project'|trans }}
                 </button>
@@ -175,15 +176,15 @@
                 {% for project in projectViews %}
                     <div class="list-group-item" data-project-row data-project-id="{{ project.id }}" data-version="{{ project.version }}">
                         <div class="row g-2">
-                            <div class="col-md-6"><input class="form-control form-control-sm project-field" data-field="name" value="{{ project.name }}" {{ isOwner ? '' : 'disabled' }}></div>
-                            <div class="col-md-3"><input class="form-control form-control-sm project-field" type="date" data-field="startDate" value="{{ project.startDate }}" {{ isOwner ? '' : 'disabled' }}></div>
-                            <div class="col-md-3"><input class="form-control form-control-sm project-field" type="date" data-field="endDate" value="{{ project.endDate ?? '' }}" {{ isOwner ? '' : 'disabled' }}></div>
-                            <div class="col-12"><textarea class="form-control form-control-sm project-field" rows="2" data-field="descriptionMd" {{ isOwner ? '' : 'disabled' }}>{{ project.descriptionMd }}</textarea></div>
-                            <div class="col-12"><input class="form-control form-control-sm project-field project-tags" data-field="tags" value="{{ project.tags|join(', ')|e('html_attr') }}" {{ isOwner ? '' : 'disabled' }}></div>
+                            <div class="col-md-6"><input class="form-control form-control-sm project-field" data-field="name" value="{{ project.name }}" {{ canEdit ? '' : 'disabled' }}></div>
+                            <div class="col-md-3"><input class="form-control form-control-sm project-field" type="date" data-field="startDate" value="{{ project.startDate }}" {{ canEdit ? '' : 'disabled' }}></div>
+                            <div class="col-md-3"><input class="form-control form-control-sm project-field" type="date" data-field="endDate" value="{{ project.endDate ?? '' }}" {{ canEdit ? '' : 'disabled' }}></div>
+                            <div class="col-12"><textarea class="form-control form-control-sm project-field" rows="2" data-field="descriptionMd" {{ canEdit ? '' : 'disabled' }}>{{ project.descriptionMd }}</textarea></div>
+                            <div class="col-12"><input class="form-control form-control-sm project-field project-tags" data-field="tags" value="{{ project.tags|join(', ')|e('html_attr') }}" {{ canEdit ? '' : 'disabled' }}></div>
                         </div>
                         <div class="d-flex justify-content-between align-items-center mt-1">
                             <small class="text-muted project-state" data-state>{{ 'profile.autosave.saved'|trans }}</small>
-                            {% if isOwner %}
+                            {% if canEdit %}
                                 <button type="button" class="btn btn-sm btn-outline-danger project-delete" title="{{ 'toolbar.delete'|trans }}">
                                     <i class="bi bi-trash"></i>
                                 </button>
@@ -228,7 +229,7 @@
     </span>
 
     {# Модальное окно для редактирования аватара #}
-    {% if isOwner %}
+    {% if canEdit %}
     <div class="modal fade" id="avatarEditorModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">

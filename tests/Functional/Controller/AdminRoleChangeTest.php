@@ -8,9 +8,8 @@ use App\Entity\User;
 use App\Enum\UserRole;
 
 /**
- * Admin panel role management: promote (candidate -> recruiter) and demote
- * (recruiter -> candidate). Administrator accounts and one's own role are
- * protected; non-admins must not reach the routes at all.
+ * Admin panel role management: promote (candidate -> recruiter), demote
+ * (recruiter -> candidate), and revoke-admin. Non-admins must not reach routes.
  */
 final class AdminRoleChangeTest extends AbstractFunctionalTestCase
 {
@@ -56,16 +55,17 @@ final class AdminRoleChangeTest extends AbstractFunctionalTestCase
         self::assertFalse($fresh->hasRole(UserRole::ROLE_RECRUITER), 'recruiter role must be removed on demote');
     }
 
-    public function testAdminCannotChangeAnotherAdminRole(): void
+    public function testLastAdminCannotRevokeOwnAdminRole(): void
     {
-        $this->admin();
-        $otherAdmin = $this->createUser('peer@platform.local', UserRole::ROLE_ADMIN);
+        $admin = $this->admin();
 
-        $this->client->request('POST', '/admin/users/' . $otherAdmin->getId() . '/promote');
+        $this->client->request('POST', '/admin/users/' . $admin->getId() . '/revoke-admin');
 
         self::assertResponseRedirects('/admin/users');
-        $fresh = $this->reload($otherAdmin);
-        self::assertTrue($fresh->hasRole(UserRole::ROLE_ADMIN), 'admin role must stay untouched');
+        $this->client->followRedirect();
+        self::assertStringContainsString('Cannot remove the last administrator.', (string) $this->client->getResponse()->getContent());
+        $fresh = $this->reload($admin);
+        self::assertTrue($fresh->hasRole(UserRole::ROLE_ADMIN), 'last admin must stay an admin');
     }
 
     public function testPromoteRejectsUserWhoIsNotCandidate(): void
@@ -80,15 +80,57 @@ final class AdminRoleChangeTest extends AbstractFunctionalTestCase
         self::assertTrue($fresh->hasRole(UserRole::ROLE_RECRUITER), 'recruiter must not change on invalid promote');
     }
 
-    public function testAdminCannotChangeOwnRole(): void
+    public function testAdminCanRemoveOwnAdminRoleWhenAnotherAdminExists(): void
     {
         $admin = $this->admin();
+        $this->createUser('peer@platform.local', UserRole::ROLE_ADMIN);
 
-        $this->client->request('POST', '/admin/users/' . $admin->getId() . '/demote');
+        $this->client->request('POST', '/admin/users/' . $admin->getId() . '/revoke-admin');
 
         self::assertResponseRedirects('/admin/users');
         $fresh = $this->reload($admin);
-        self::assertTrue($fresh->hasRole(UserRole::ROLE_ADMIN), 'admin cannot demote himself');
+        self::assertFalse($fresh->hasRole(UserRole::ROLE_ADMIN), 'admin role must be removable');
+        self::assertTrue($fresh->hasRole(UserRole::ROLE_CANDIDATE), 'demoted admin must become a candidate');
+    }
+
+    public function testAdminCannotRevokeAnotherAdminsRole(): void
+    {
+        $this->admin();
+        $otherAdmin = $this->createUser('peer@platform.local', UserRole::ROLE_ADMIN);
+
+        $this->client->request('POST', '/admin/users/' . $otherAdmin->getId() . '/revoke-admin');
+
+        self::assertResponseRedirects('/admin/users');
+        $this->client->followRedirect();
+        self::assertStringContainsString('You can only remove your own administrator role.', (string) $this->client->getResponse()->getContent());
+        $fresh = $this->reload($otherAdmin);
+        self::assertTrue($fresh->hasRole(UserRole::ROLE_ADMIN), 'another admin must stay an admin');
+    }
+
+    public function testDemoteRejectsAdministrator(): void
+    {
+        $this->admin();
+        $otherAdmin = $this->createUser('peer@platform.local', UserRole::ROLE_ADMIN);
+
+        $this->client->request('POST', '/admin/users/' . $otherAdmin->getId() . '/demote');
+
+        self::assertResponseRedirects('/admin/users');
+        $this->client->followRedirect();
+        self::assertStringContainsString('Use revoke-admin action for administrator accounts.', (string) $this->client->getResponse()->getContent());
+        $fresh = $this->reload($otherAdmin);
+        self::assertTrue($fresh->hasRole(UserRole::ROLE_ADMIN));
+    }
+
+    public function testPromoteRejectsAdministrator(): void
+    {
+        $this->admin();
+        $otherAdmin = $this->createUser('peer@platform.local', UserRole::ROLE_ADMIN);
+
+        $this->client->request('POST', '/admin/users/' . $otherAdmin->getId() . '/promote');
+
+        self::assertResponseRedirects('/admin/users');
+        $fresh = $this->reload($otherAdmin);
+        self::assertTrue($fresh->hasRole(UserRole::ROLE_ADMIN));
     }
 
     public function testNonAdminCannotAccessPromoteRoute(): void
@@ -113,7 +155,10 @@ final class AdminRoleChangeTest extends AbstractFunctionalTestCase
 
         self::assertStringContainsString('data-action="promote"', $html);
         self::assertStringContainsString('data-action="demote"', $html);
-        // Admins must never match the role gates (ROLE_CANDIDATE / ROLE_RECRUITER).
+        self::assertStringContainsString('data-action="revoke-admin"', $html);
+        self::assertStringContainsString('data-required-role="ROLE_ADMIN"', $html);
+        self::assertStringContainsString('data-own-row="true"', $html);
+        self::assertStringContainsString('data-own-row="false"', $html);
         self::assertStringContainsString('data-role="ROLE_ADMIN"', $html);
         self::assertStringContainsString('data-role="ROLE_CANDIDATE"', $html);
     }

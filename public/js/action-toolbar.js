@@ -35,8 +35,16 @@
                     btn.disabled = ids.length === 0;
                     return;
                 }
+                if (action === 'revoke-admin') {
+                    const row = rows.find(function (r) { return r.classList.contains('selected'); });
+                    btn.disabled = ids.length !== 1
+                        || !row
+                        || row.dataset.ownRow !== 'true'
+                        || row.dataset.role !== 'ROLE_ADMIN';
+                    return;
+                }
                 // Single-row actions (edit / duplicate / apply / block / promote /
-                // demote): enabled only when exactly one row is selected.
+                // demote / revoke-admin): enabled only when exactly one row is selected.
                 const single = ids.length === 1;
                 if (!single) {
                     btn.disabled = true;
@@ -44,7 +52,7 @@
                 }
                 // Role-gated actions: the selected row must carry the role the
                 // button targets (e.g. promote needs ROLE_CANDIDATE, demote needs
-                // ROLE_RECRUITER) — admins never match, so they stay disabled.
+                // ROLE_RECRUITER or ROLE_ADMIN) — only matching rows are enabled.
                 if (btn.dataset.requiredRole) {
                     const row = rows.find(function (r) { return r.classList.contains('selected'); });
                     btn.disabled = !row || row.dataset.role !== btn.dataset.requiredRole;
@@ -94,7 +102,7 @@
                 } else if (action === 'block') {
                     // POST /admin/users/{id}/block (full page redirect on success).
                     postForm(btn.dataset.urlPrefix + id + '/block');
-                } else if (action === 'promote' || action === 'demote') {
+                } else if (action === 'promote' || action === 'demote' || action === 'revoke-admin') {
                     // POST to /admin/users/{id}/promote|demote after confirmation.
                     if (window.confirm(btn.dataset.confirm || 'Change this user\'s role?')) {
                         postForm(btn.dataset.urlPrefix + id + '/' + action);

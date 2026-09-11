@@ -63,6 +63,20 @@ final class ProfileAccessTest extends AbstractFunctionalTestCase
         $this->client->request('GET', '/profile/' . $profile->getId());
 
         self::assertResponseIsSuccessful();
+        self::assertSelectorExists('input[disabled]');
+        self::assertSelectorNotExists('a[href$="/edit"]');
+    }
+
+    public function testOtherProfileEditRouteIsUnavailable(): void
+    {
+        $candidate = $this->createUser('edit-target@example.com', UserRole::ROLE_CANDIDATE);
+        $profile = $this->createProfile($candidate);
+        $admin = $this->createUser('edit-admin@example.com', UserRole::ROLE_ADMIN);
+
+        $this->client->loginUser($admin);
+        $this->client->request('GET', '/profile/' . $profile->getId() . '/edit');
+
+        self::assertResponseStatusCodeSame(404);
     }
 
     public function testAutosaveSuccessReturnsNewVersion(): void

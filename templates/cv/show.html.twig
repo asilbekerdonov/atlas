@@ -96,7 +96,18 @@
                             <small class="text-muted">{{ project.startDate|date('Y-m-d') }} — {{ project.endDate ? project.endDate|date('Y-m-d') : 'now' }}</small>
                         </div>
                         <div class="markdown-body small">{{ project.descriptionMd|markdown_safe }}</div>
-                        <div>{% for tag in project.tags %}<span class="badge text-bg-secondary">{{ tag }}</span> {% endfor %}</div>
+                        {% set allTags = project.tags %}
+                        {% set visibleTags = allTags|slice(0, 2) %}
+                        {% set hiddenCount = allTags|length - 2 %}
+                        <div class="tags-cell">
+                            {% for tag in visibleTags %}
+                                <span class="badge text-bg-secondary">{{ tag }}</span>
+                            {% endfor %}
+                            {% if hiddenCount > 0 %}
+                                {% set otherTags = allTags|slice(2)|join(', ') %}
+                                <span class="badge bg-secondary" title="{{ otherTags }}">+{{ hiddenCount }}</span>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
             {% else %}
